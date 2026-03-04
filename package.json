@@ -1,7 +1,7 @@
 {
   "name": "gmail-data-gateway",
   "type": "module",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "scripts": {
     "dev": "bunx tailwindcss -i ./src/tailwind.css -o ./public/global.css && bun --hot src/server.ts",
     "build": "bun run clean && bunx tailwindcss -i ./src/tailwind.css -o ./public/global.css && tsc && tsc-alias && cp -r public dist/public",
