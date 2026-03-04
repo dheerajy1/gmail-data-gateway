@@ -1,0 +1,79 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ---------------------------------------------
+      # 1. Checkout repo with full history & tags
+      # ---------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ---------------------------------------------
+      # 2. set node version
+      # ---------------------------------------------
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # ---------------------------------------------
+      # 3. Setup Bun
+      # ---------------------------------------------
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      # ---------------------------------------------
+      # 4. Cache Bun dependencies
+      # ---------------------------------------------
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        id: bun-cache
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lockb') }}
+          restore-keys: ${{ runner.os }}-bun-
+
+      # ---------------------------------------------
+      # 5. Install dependencies via Bun
+      # ---------------------------------------------
+      - name: Install Dependencies
+        run: bun install --frozen-lockfile
+
+      # ---------------------------------------------
+      # 6. Configure git for github-actions[bot] 
+      #     - these are fallback, but the env vars below take priority for semantic-release/git.
+      # ---------------------------------------------
+      - name: Configure git for github-actions[bot]
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      # ---------------------------------------------
+      # 7. Run semantic-release (Node-compatible)
+      #     - these make the commit show as github-actions[bot]
+      # ---------------------------------------------
+      - name: Run semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
+        run: bunx semantic-release

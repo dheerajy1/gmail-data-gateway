@@ -1,0 +1,84 @@
+.
+├── .github
+│   ├── workflows
+│   │   ├── pr-checks.yml
+│   │   ├── pr-check-template.yml
+│   │   ├── release.yml
+│   │   └── test.yml
+│   ├── CODEOWNERS
+│   ├── labeler.yml
+│   └── pull_request_template.md
+├── public
+│   ├── favicon.ico
+│   ├── global.css
+│   └── logo.png
+├── scripts
+│   ├── db-select-test.ts
+│   ├── get-token-expiry.ts
+│   └── gmail-azure-sync.config.cjs
+├── src
+│   ├── components
+│   │   ├── About.tsx
+│   │   ├── Healthz.tsx
+│   │   ├── Home.tsx
+│   │   ├── Layout.tsx
+│   │   └── Login.tsx
+│   ├── lib
+│   │   ├── db-scripts
+│   │   │   ├── get-db-health.ts
+│   │   │   ├── job-azure-sync.ts
+│   │   │   ├── sp-get-last-date-emails.ts
+│   │   │   └── sp-Insert-raw-data-emails.ts
+│   │   ├── azure-sync-job-subscriber.ts
+│   │   ├── constants.ts
+│   │   ├── db-onprem.ts
+│   │   ├── db.ts
+│   │   ├── env.ts
+│   │   ├── errors.ts
+│   │   ├── generate-token.ts
+│   │   ├── getAccessToken.ts
+│   │   ├── gmail.ts
+│   │   ├── http-publish.ts
+│   │   ├── ingestMails.ts
+│   │   ├── isoNowIST.ts
+│   │   ├── port-check.ts
+│   │   └── utlis.ts
+│   ├── middleware
+│   │   ├── auth.ts
+│   │   └── server-gate.ts
+│   ├── routes
+│   │   ├── v1
+│   │   │   ├── admin
+│   │   │   │   └── extractMails.ts
+│   │   │   ├── auth
+│   │   │   │   └── login.ts
+│   │   │   ├── admin.router.ts
+│   │   │   ├── auth.router.ts
+│   │   │   └── v1.router.ts
+│   │   ├── about.ts
+│   │   ├── healthz.ts
+│   │   ├── home.ts
+│   │   └── login.ts
+│   ├── schemas
+│   │   └── login.ts
+│   ├── types
+│   │   ├── auth.ts
+│   │   ├── env.ts
+│   │   └── global.ts
+│   ├── index.ts
+│   ├── server.ts
+│   └── tailwind.css
+├── tests
+│   └── github-actions-payloads
+│       └── push.payload.json
+├── directory-tree.txt
+├── eslint.config.js
+├── .gitignore
+├── LICENSE
+├── package.json
+├── README.md
+├── release.config.js
+├── tsconfig.json
+└── vercel.json
+
+18 directories, 64 files
