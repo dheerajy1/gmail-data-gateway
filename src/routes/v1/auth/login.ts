@@ -41,6 +41,7 @@ router.post(
         }
 
         const { Username, PasswordHash, UserRole } = result.recordset[0];
+
         const valid = await Bun.password.verify(password, PasswordHash);
 
         if (!valid) {
