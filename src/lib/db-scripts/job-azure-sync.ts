@@ -12,9 +12,9 @@ export async function azureSyncJob({ jobName }: { jobName: string }) {
         await pool.request()
             .input("targetJobName", sql.VarChar(100), jobName)
             .query(`
-        EXEC msdb.dbo.sp_start_job 
-        @job_name = @targetJobName;
-    `);
+                EXEC [msdb].[dbo].[sp_start_job] 
+                @job_name = @targetJobName;
+            `);
 
         console.log(`${isoNowIST()} \t [SQL:Action]\t _/ Job started successfully.`);
 

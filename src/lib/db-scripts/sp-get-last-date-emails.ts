@@ -1,8 +1,8 @@
 import { getAzureSQLDbPool } from "@/lib/db";
 import { RequestError } from "mssql";
 
-type SpGetLastDateEmailsRow = {
-  Result: "SUCCESS";
+type SpOutput = {
+  result: "SUCCESS";
   date: string;
 };
 
@@ -20,11 +20,11 @@ export async function spGetLastDateEmails(): Promise<{
   try {
     const result = await pool
       .request()
-      .execute("dbo.SP_GetLastDateEmails");
+      .execute("[02sjobsData].[03spgetLastDateAppliedJobs]");
 
-    const row = result.recordset?.[0] as SpGetLastDateEmailsRow;
+    const row = result.recordset?.[0] as SpOutput;
 
-    if (!row || row.Result !== "SUCCESS") {
+    if (!row || row.result !== "SUCCESS") {
       return {
         error: {
           message: "Stored procedure did not return SUCCESS"

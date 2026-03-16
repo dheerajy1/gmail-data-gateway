@@ -27,10 +27,10 @@ router.post(
             .request()
             .input("username", username)
             .query(`
-        SELECT Username, PasswordHash, UserRole
-        FROM tApiUsers02
-        WHERE username = @username
-      `);
+                SELECT userName, passwordHash, userRole
+                FROM [02tapiUsers]
+                WHERE userName = @username
+            `);
 
         if (result.recordset.length === 0) {
             throw new MyError({
@@ -40,9 +40,9 @@ router.post(
             });
         }
 
-        const { Username, PasswordHash, UserRole } = result.recordset[0];
+        const { userName, passwordHash, userRole } = result.recordset[0];
 
-        const valid = await Bun.password.verify(password, PasswordHash);
+        const valid = await Bun.password.verify(password, passwordHash);
 
         if (!valid) {
             throw new MyError({
@@ -53,8 +53,8 @@ router.post(
         }
 
         const token = await jwt.sign({
-            sub: Username,
-            role: UserRole,
+            sub: userName,
+            role: userRole,
         });
 
         if (!token) {

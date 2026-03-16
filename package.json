@@ -1,5 +1,5 @@
 {
-  "name": "gmail-data-gateway",
+  "name": "jobs-api-gateway",
   "type": "module",
   "version": "1.0.0",
   "scripts": {

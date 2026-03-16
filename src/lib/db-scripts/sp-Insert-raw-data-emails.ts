@@ -1,9 +1,15 @@
 import { getAzureSQLDbPool } from "@/lib/db";
 import sql, { RequestError } from "mssql";
 
-type SpInsertRawDataEmailsRow = {
-  Result: "SUCCESS";
-  Message: string;
+type Notes = {
+  fromId: number;
+  toId: number;
+  rowsInserted: number;
+};
+
+type SpOutput = {
+  result: "SUCCESS";
+  notes: string;
 };
 
 export async function spInsertRawDataEmails({
@@ -16,18 +22,20 @@ export async function spInsertRawDataEmails({
 
     const result = await pool
       .request()
-      .input("Input", sql.NVarChar(sql.MAX), inputJson)
-      .execute("dbo.SP_InsertRawDataEmails");
+      .input("input", sql.NVarChar(sql.MAX), inputJson)
+      .execute("[02sjobsData].[02spinsertRawAppliedJobs]");
 
-    const row = result.recordset?.[0] as unknown as SpInsertRawDataEmailsRow;
+    const row = result.recordset?.[0] as unknown as SpOutput;
 
-    if (!row || row.Result !== "SUCCESS") {
+    const notes = JSON.parse(row.notes) as Notes;
+
+    if (!row || row.result !== "SUCCESS") {
       throw new Error("SP did not return SUCCESS");
     }
 
     return {
       success: true,
-      data: row.Message,
+      data: { rowsInserted: notes.rowsInserted },
     };
 
   } catch (error: unknown) {

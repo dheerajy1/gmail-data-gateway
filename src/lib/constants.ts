@@ -23,7 +23,7 @@ export const jwtVal = {
   name: 'jwt',
   secret: env.JWT_SECRET,
   exp: "1d",
-  iss: "gmail-data-gateway"
+  iss: "jobs-api-gateway"
 }
 
 // Server environmnet
