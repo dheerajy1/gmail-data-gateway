@@ -17,34 +17,38 @@ export const NoAuthHeadersSchema = z.object({
     "x-client-id": z
         .string()
         .trim()
-        .min(1, { message: "x-client-id is required and cannot be empty" })
-        .length("nextjs-frontend".length, "CLIENT_ID must match expected length")
-        .describe("Client identifier"),
+        .min(1, { message: "x-client-id is required and cannot be empty." })
+        .max(30, "x-client-id must be under 50 characters long.")
+        .describe("x-client-id used for authentication."),
     "x-client-secret": z
         .string()
         .trim()
-        .min(1, { message: "x-client-secret is required and cannot be empty" })
-        .length(44, "CLIENT_SECRET must be 32 bytes base64 (openssl rand -base64 32)")
-        .describe("Client secret"),
+        .min(1, { message: "x-client-secret is required and cannot be empty." })
+        .max(50, {
+            message: "x-client-secret must be under 50 characters long.",
+        })
+        .describe("x-client-secret used for authentication."),
 });
 
 export const AuthHeadersSchema = z.object({
     "x-client-id": z
         .string()
         .trim()
-        .min(1, { message: "x-client-id is required and cannot be empty" })
-        .length("nextjs-frontend".length, "x-client-id must match expected length")
-        .describe("Client identifier"),
+        .min(1, { message: "x-client-id is required and cannot be empty." })
+        .max(30, "x-client-id must be under 50 characters long.")
+        .describe("x-client-id used for authentication."),
     "x-client-secret": z
         .string()
         .trim()
-        .min(1, { message: "x-client-secret is required and cannot be empty" })
-        .length(44, "x-client-secret must be 32 bytes base64 (openssl rand -base64 32)")
-        .describe("Client secret"),
+        .min(1, { message: "x-client-secret is required and cannot be empty." })
+        .max(50, {
+            message: "x-client-secret must be under 50 characters long.",
+        })
+        .describe("x-client-secret used for authentication."),
     authorization: z
         .string()
-        .regex(/^Bearer .+/, "Must be a valid Bearer token")
-        .describe("JWT Bearer token"),
+        .regex(/^Bearer .+/, "Must be a valid Bearer token.")
+        .describe("JWT Bearer token."),
 });
 
 // =========================
@@ -131,20 +135,22 @@ export const RefreshTokenInputSchema = z.object({
     headers: z.object({
         authorization: z
             .string()
-            .regex(/^Bearer .+/, "Must be a valid Bearer token")
-            .describe("JWT Bearer token"),
+            .regex(/^Bearer .+/, "Must be a valid Bearer token.")
+            .describe("JWT Bearer token."),
         "x-client-id": z
             .string()
             .trim()
-            .min(1, { message: "x-client-id is required and cannot be empty" })
-            .length("nextjs-frontend".length, "x-client-id must match expected length")
-            .describe("Client identifier"),
+            .min(1, { message: "x-client-id is required and cannot be empty." })
+            .max(30, "x-client-id must be under 50 characters long.")
+            .describe("x-client-id used for authentication."),
         "x-client-secret": z
             .string()
             .trim()
-            .min(1, { message: "x-client-secret is required and cannot be empty" })
-            .length(44, "x-client-secret must be 32 bytes base64 (openssl rand -base64 32)")
-            .describe("Client secret"),
+            .min(1, { message: "x-client-secret is required and cannot be empty." })
+            .max(50, {
+                message: "x-client-secret must be under 50 characters long.",
+            })
+            .describe("x-client-secret used for authentication."),
     }),
 })
 
