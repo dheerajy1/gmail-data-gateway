@@ -15,7 +15,7 @@ router.post(
     async ({ body, status }) => {
         const { type, query, inputMailsCount, inputDateAfter, inputDateBefore } = body;
 
-        const { data: dataEm, error: errorEm } = await ingestMails({
+        const { data: dataEm } = await ingestMails({
             query,
             mode: type,
             inputMailsCount,
@@ -23,39 +23,6 @@ router.post(
             inputDateBefore
         });
 
-        if (errorEm) {
-            switch (errorEm.number) {
-
-                case 50001:
-                    throw new MyError({
-                        code: "NOT_FOUND",
-                        message: errors.NOT_FOUND.TABLE_NOT_FOUND.message,
-                        error: errors.NOT_FOUND.TABLE_NOT_FOUND.error,
-                    });
-
-                case 50002:
-                    throw new MyError({
-                        code: "NOT_FOUND",
-                        message: errors.NOT_FOUND.NO_EMAIL_DATA.message,
-                        error: errors.NOT_FOUND.NO_EMAIL_DATA.error,
-                    });
-
-                default:
-                    throw new MyError({
-                        code: "INTERNAL_SERVER_ERROR",
-                        message: errors.INTERNAL_SERVER_ERROR.INGEST_OPERATION_FAILED.message,
-                        error: errors.INTERNAL_SERVER_ERROR.INGEST_OPERATION_FAILED.error,
-                    });
-            }
-        }
-
-        if (!dataEm) {
-            throw new MyError({
-                code: "INTERNAL_SERVER_ERROR",
-                message: errors.INTERNAL_SERVER_ERROR.EXTRACT_FAILED.message,
-                error: errors.INTERNAL_SERVER_ERROR.EXTRACT_FAILED.error,
-            });
-        }
 
         if (dataEm.length === 0) {
             // ============================
@@ -69,48 +36,7 @@ router.post(
             });
         }
 
-        const { data, error } = await spInsertRawDataEmails({ data: dataEm });
-
-        if (error) {
-
-            switch (error.number) {
-
-                case 50004:
-                    throw new MyError({
-                        code: "CONFLICT",
-                        message: errors.CONFLICT.NO_NEW_RECORDS.message,
-                        error: errors.CONFLICT.NO_NEW_RECORDS.error,
-                    });
-
-                case 50002:
-                    throw new MyError({
-                        code: "BAD_REQUEST",
-                        message: errors.BAD_REQUEST.EMPTY_PAYLOAD.message,
-                        error: errors.BAD_REQUEST.EMPTY_PAYLOAD.error,
-                    });
-
-                case 50001:
-                    throw new MyError({
-                        code: "BAD_REQUEST",
-                        message: errors.BAD_REQUEST.INVALID_JSON_INPUT.message,
-                        error: errors.BAD_REQUEST.INVALID_JSON_INPUT.error,
-                    });
-
-                case 50003:
-                    throw new MyError({
-                        code: "BAD_REQUEST",
-                        message: errors.BAD_REQUEST.MALFORMED_INPUT_ROWS.message,
-                        error: errors.BAD_REQUEST.MALFORMED_INPUT_ROWS.error,
-                    });
-
-                default:
-                    throw new MyError({
-                        code: "CONFLICT",
-                        message: errors.CONFLICT.DATABASE_CONFLICT.message,
-                        error: errors.CONFLICT.DATABASE_CONFLICT.error,
-                    });
-            }
-        }
+        const { data } = await spInsertRawDataEmails({ data: dataEm });
 
         if (!data) {
             throw new MyError({

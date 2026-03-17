@@ -18,7 +18,7 @@ export const NoAuthHeadersSchema = z.object({
         .string()
         .trim()
         .min(1, { message: "x-client-id is required and cannot be empty." })
-        .max(30, "x-client-id must be under 50 characters long.")
+        .max(30, "x-client-id must be under 30 characters long.")
         .describe("x-client-id used for authentication."),
     "x-client-secret": z
         .string()
@@ -35,7 +35,7 @@ export const AuthHeadersSchema = z.object({
         .string()
         .trim()
         .min(1, { message: "x-client-id is required and cannot be empty." })
-        .max(30, "x-client-id must be under 50 characters long.")
+        .max(30, "x-client-id must be under 30 characters long.")
         .describe("x-client-id used for authentication."),
     "x-client-secret": z
         .string()
@@ -141,7 +141,7 @@ export const RefreshTokenInputSchema = z.object({
             .string()
             .trim()
             .min(1, { message: "x-client-id is required and cannot be empty." })
-            .max(30, "x-client-id must be under 50 characters long.")
+            .max(30, "x-client-id must be under 30 characters long.")
             .describe("x-client-id used for authentication."),
         "x-client-secret": z
             .string()

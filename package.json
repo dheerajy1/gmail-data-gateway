@@ -8,7 +8,8 @@
     "start": "NODE_ENV=production bun dist/server.js",
     "lint": "eslint . --cache --cache-location .eslintcache",
     "clean": "rm -rf dist/* dist/.* || true",
-    "db:test": "bun scripts/db-select-test.ts",
+    "test:db": "bun scripts/db-select-test.ts",
+    "test:ingest": "bun src/tests/run-ingest.ts",
     "token:gen": "bun src/lib/generate-token.ts",
     "token:getexpat": "bun scripts/get-token-expiry.ts"
   },

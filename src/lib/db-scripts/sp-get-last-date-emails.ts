@@ -1,4 +1,5 @@
 import { getAzureSQLDbPool } from "@/lib/db";
+import { MyError, errors } from "@/lib/errors";
 import { RequestError } from "mssql";
 
 type SpOutput = {
@@ -6,15 +7,7 @@ type SpOutput = {
   date: string;
 };
 
-type SpGetLastDateEmailsError = {
-  message: string;
-  number?: number;
-};
-
-export async function spGetLastDateEmails(): Promise<{
-  data?: string;
-  error?: SpGetLastDateEmailsError;
-}> {
+export async function spGetLastDateEmails(): Promise<{ data: string }> {
   const pool = await getAzureSQLDbPool({ poolKey: "service" });
 
   try {
@@ -25,11 +18,11 @@ export async function spGetLastDateEmails(): Promise<{
     const row = result.recordset?.[0] as SpOutput;
 
     if (!row || row.result !== "SUCCESS") {
-      return {
-        error: {
-          message: "Stored procedure did not return SUCCESS"
-        }
-      };
+      throw new MyError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: errors.INTERNAL_SERVER_ERROR.EXTRACT_FAILED.message,
+        error: errors.INTERNAL_SERVER_ERROR.EXTRACT_FAILED.error,
+      });
     }
 
     return {
@@ -42,21 +35,36 @@ export async function spGetLastDateEmails(): Promise<{
     // console.error(`src/lib/db-scripts/sp-get-last-date-emails.ts error`, err);
 
     if (err instanceof RequestError) {
-      return {
-        error: {
-          message: err.message,
-          number: err.number
-        }
-      };
+
+      switch (err.number) {
+
+        case 50001:
+          throw new MyError({
+            code: "NOT_FOUND",
+            message: errors.NOT_FOUND.TABLE_NOT_FOUND.message,
+            error: errors.NOT_FOUND.TABLE_NOT_FOUND.error,
+          });
+
+        case 50002:
+          throw new MyError({
+            code: "NOT_FOUND",
+            message: errors.NOT_FOUND.NO_EMAIL_DATA.message,
+            error: errors.NOT_FOUND.NO_EMAIL_DATA.error,
+          });
+
+        default:
+          throw new MyError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: errors.INTERNAL_SERVER_ERROR.EXTRACT_FAILED.message,
+            error: errors.INTERNAL_SERVER_ERROR.EXTRACT_FAILED.error,
+          });
+      }
     }
 
-    return {
-      error: {
-        message:
-          err instanceof Error
-            ? err.message
-            : "Unknown database error"
-      }
-    };
+    throw new MyError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: errors.INTERNAL_SERVER_ERROR.DATABASE_ERROR.message,
+      error: errors.INTERNAL_SERVER_ERROR.DATABASE_ERROR.error,
+    });
   }
 }

@@ -1,6 +1,6 @@
 import { spGetLastDateEmails } from "@/lib/db-scripts/sp-get-last-date-emails";
-import { errors } from "@/lib/errors";
-import { gmail } from "@/lib/gmail";
+import { MyError, errors } from "@/lib/errors";
+import { getGmail } from "@/lib/gmail";
 import { sleep } from "@/lib/utlis";
 import { GaxiosError } from "gaxios";
 import { gmail_v1 } from "googleapis";
@@ -17,14 +17,8 @@ interface DetailedMessage {
   snippet: string;
 }
 
-type IngestError = {
-  message: string;
-  number?: number;
-};
-
 interface ExtractResponse {
-  data?: DetailedMessage[];
-  error?: IngestError;
+  data: DetailedMessage[];
 }
 /* =========================
   Helpers
@@ -83,6 +77,9 @@ function cleanText({ input }: { input: string }) {
 
 async function fetchMessageDetail(id: string): Promise<DetailedMessage | null> {
   try {
+
+    const gmail = await getGmail();
+
     const res = await gmail.users.messages.get({
       userId: "me",
       id: id,
@@ -175,13 +172,11 @@ export async function ingestMails({
     }
 
     if (mode === "Sync") {
-      const res = await spGetLastDateEmails();
-      if (res.error) return { error: res.error };
+      const { data: lastDate } = await spGetLastDateEmails();
 
-      if (res.data) {
-        const unixAfter = Math.floor(new Date(res.data).getTime() / 1000);
-        fullQuery = `${query} after:${unixAfter}`;
-      }
+      const unixAfter = Math.floor(new Date(lastDate).getTime() / 1000);
+
+      fullQuery = `${query} after:${unixAfter}`;
     }
 
     if (mode === "Increment") {
@@ -208,6 +203,8 @@ export async function ingestMails({
 
     let allMessages: DetailedMessage[] = [];
     let pageToken: string | undefined = undefined;
+
+    const gmail = await getGmail();
 
     do {
       const listRes: gmail_v1.Schema$ListMessagesResponse =
@@ -248,27 +245,50 @@ export async function ingestMails({
 
     if (err instanceof GaxiosError) {
       const status = err.response?.status;
-      if (status === 401) return { error: { message: errors.UNAUTHORIZED.GMAIL_SESSION_EXPIRED.error } };
-      if (status === 403) return { error: { message: errors.FORBIDDEN.GMAIL_ACCESS_DENIED.error } };
-      if (status === 429) return { error: { message: errors.TOO_MANY_REQUESTS.GMAIL_RATE_LIMIT.error } };
 
-      return { error: { message: `Gmail API Error (${status}): ${err.message}` } };
+      if (status === undefined) {
+        throw new MyError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: err.message,
+          error: err.message,
+        });
+      }
+
+      if ([400, 401].includes(status)) {
+        throw new MyError({
+          code: "UNAUTHORIZED",
+          message: errors.UNAUTHORIZED.GMAIL_SESSION_EXPIRED.message,
+          error: errors.UNAUTHORIZED.GMAIL_SESSION_EXPIRED.error,
+        });
+      }
+
+      if (status === 403) {
+        throw new MyError({
+          code: "FORBIDDEN",
+          message: errors.FORBIDDEN.GMAIL_ACCESS_DENIED.message,
+          error: errors.FORBIDDEN.GMAIL_ACCESS_DENIED.error,
+        });
+      }
+
+      if (status === 429) {
+        throw new MyError({
+          code: "TOO_MANY_REQUESTS",
+          message: errors.TOO_MANY_REQUESTS.GMAIL_RATE_LIMIT.message,
+          error: errors.TOO_MANY_REQUESTS.GMAIL_RATE_LIMIT.error,
+        });
+      }
+
+      throw new MyError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: `Gmail API Error (${status})`,
+        error: err.message,
+      });
     }
 
-    if (typeof err === "object" && err !== null && "number" in err) {
-      const sqlErr = err as { message: string; number?: number };
-      return {
-        error: {
-          message: sqlErr.message,
-          number: sqlErr.number
-        }
-      };
-    }
-    const message =
-      err instanceof Error
-        ? err.message
-        : "An unknown error occurred during ingestion";
-
-    return { error: { message: message } };
+    throw new MyError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: errors.INTERNAL_SERVER_ERROR.EXTRACT_FAILED.message,
+      error: errors.INTERNAL_SERVER_ERROR.EXTRACT_FAILED.error,
+    });
   }
 }
