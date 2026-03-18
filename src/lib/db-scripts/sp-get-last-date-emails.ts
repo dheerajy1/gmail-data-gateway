@@ -41,13 +41,6 @@ export async function spGetLastDateEmails(): Promise<{ data: string }> {
         case 50001:
           throw new MyError({
             code: "NOT_FOUND",
-            message: errors.NOT_FOUND.TABLE_NOT_FOUND.message,
-            error: errors.NOT_FOUND.TABLE_NOT_FOUND.error,
-          });
-
-        case 50002:
-          throw new MyError({
-            code: "NOT_FOUND",
             message: errors.NOT_FOUND.NO_EMAIL_DATA.message,
             error: errors.NOT_FOUND.NO_EMAIL_DATA.error,
           });
