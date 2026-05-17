@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/dheerajy1/gmail-data-gateway/compare/v1.0.0...v1.0.1) (2026-05-17)
+
+
+### Bug Fixes
+
+* improve Google OAuth credential management, ingestion reliability, and project standardization ([#2](https://github.com/dheerajy1/gmail-data-gateway/issues/2)) ([3757f21](https://github.com/dheerajy1/gmail-data-gateway/commit/3757f219a28abe472d286194e520d3f74f9c29ec))
+
 # 1.0.0 (2026-03-04)
 
 
