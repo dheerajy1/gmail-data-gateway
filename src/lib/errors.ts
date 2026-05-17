@@ -106,7 +106,11 @@ export const errors = {
     GMAIL_SESSION_EXPIRED: {
       message: "Your Gmail session has expired.",
       error: "AUTH_REQUIRED: Your session has expired."
-    }
+    },
+    NO_ACTIVE_CREDENTIALS: {
+      message: "No valid or active credentials were found for this request. Please log in again.",
+      error: "No active credentials found",
+    },
   },
 
   BAD_REQUEST: {
@@ -154,6 +158,10 @@ export const errors = {
       error:
         "Malformed input rows detected",
     },
+    MISSING_REFRESH_TOKEN: {
+      message: "A valid refresh token is required but was not provided. Ensure 'access_type' is set to 'offline'.",
+      error: "Refresh token is null or undefined",
+    },
   },
 
   FORBIDDEN: {
@@ -184,6 +192,7 @@ export const errors = {
       message: "The requested resource does not exist or is no longer available.",
       error: "The requested resource does not exist",
     },
+
     NO_EMAIL_DATA: {
       message:
         "No email records were found in the system. Please perform a Bulk operation first.",
@@ -197,6 +206,20 @@ export const errors = {
       error:
         "Email table not found",
     },
+
+    APPS_TABLE_MISSING: {
+      message: "The required Apps configuration table is missing from the database.",
+      error: "Apps table not found",
+    },
+    TOKENS_TABLE_MISSING: {
+      message: "The required Tokens storage table is missing from the database.",
+      error: "Tokens table not found",
+    },
+    CLIENT_ID_NOT_FOUND: {
+      message: "The provided Google OAuth 2.0 client ID does not exist in our records.",
+      error: "clientId not found",
+    },
+
   },
 
   CONFLICT: {

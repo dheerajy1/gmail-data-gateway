@@ -1,7 +1,7 @@
 import { Elysia } from "elysia";
-import bulkExtractMails  from "@/routes/v1/admin/extractMails";
+import extractMails  from "@/routes/v1/admin/extractMails";
 
 const router = new Elysia({prefix: "admin"})
-    .use(bulkExtractMails);
+    .use(extractMails);
 
 export default router;

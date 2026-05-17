@@ -1,22 +1,27 @@
-import { google } from "googleapis";
+import { getActiveGoogleOAuthCreds } from "@/lib/db-scripts/spgetActiveGoogleOAuthCreds";
 import { env } from "@/lib/env";
+import { google } from "googleapis";
 
-const CLIENT_ID = env.Google_CLIENT_ID;
-const CLIENT_SECRET = env.Google_SECRET_ID;
-const REDIRECT_URI = "http://localhost:3000";
-const REFRESH_TOKEN = env.Google_REFRESH_TOKEN;
+let gmailClient: ReturnType<typeof google.gmail> | null = null;
 
-const oAuth2Client = new google.auth.OAuth2(
-  CLIENT_ID,
-  CLIENT_SECRET,
-  REDIRECT_URI
-);
+export async function getGmail() {
+  if (gmailClient) return gmailClient;
 
-oAuth2Client.setCredentials({
-  refresh_token: REFRESH_TOKEN,
-});
+  const { data } = await getActiveGoogleOAuthCreds({ id: env.Google_APPID });
 
-export const gmail = google.gmail({
-  version: "v1",
-  auth: oAuth2Client,
-});
+  const CLIENT_ID = data.clientId;
+  const CLIENT_SECRET = data.clientSecret;
+  const REDIRECT_URI = "http://localhost:3000";
+  const REFRESH_TOKEN = data.refreshToken;
+
+  const oAuth2Client = new google.auth.OAuth2(
+    CLIENT_ID,
+    CLIENT_SECRET,
+    REDIRECT_URI
+  );
+
+  oAuth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
+
+  gmailClient = google.gmail({ version: "v1", auth: oAuth2Client });
+  return gmailClient;
+}

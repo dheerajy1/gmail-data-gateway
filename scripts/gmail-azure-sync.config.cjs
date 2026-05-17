@@ -1,12 +1,12 @@
 module.exports = {
   apps: [
     {
-      name: "gmail_azure_sync",
+      name: "eventSubjobsData",
       script: "bun",
 
       args: ["src/lib/azure-sync-job-subscriber.ts"],
 
-      cwd: "/home/dev/Local-Disk-F/vs-code/gmail-data-gateway-proj/gmail-data-gateway",
+      cwd: "/home/dev/Local-Disk-F/vs-code/jobs-api-gateway",
       
       exec_mode: "fork",
       instances: 1,
