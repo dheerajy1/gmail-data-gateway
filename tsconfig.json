@@ -12,7 +12,6 @@
     "strict": true,
     "skipLibCheck": true,
     "allowImportingTsExtensions": false,
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
       "@@/*": ["./*"]
