@@ -1,4 +1,4 @@
-import { getAzureSQLDbPool } from "../src/lib/db.js";
+import { getAzureSQLDbPool } from "@/lib/db";
 
 const pool = await getAzureSQLDbPool();
 const res = await pool.request().query("SELECT 1 AS ok");

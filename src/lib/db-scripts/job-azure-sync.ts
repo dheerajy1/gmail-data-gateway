@@ -40,7 +40,7 @@ export async function azureSyncJob({ jobName }: { jobName: string }) {
       throw new Error(`PostgreSQL procedure not found: ${jobName}`);
     }
 
-    await pool.query(`CALL ${jobName}()`);
+    // await pool.query(`CALL ${jobName}()`);
 
     console.log(
       `${isoNowIST()} \t [PG:Action]\t _/ Job executed successfully.`,
