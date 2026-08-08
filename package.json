@@ -1,7 +1,7 @@
 {
   "name": "jobs-api-gateway",
   "type": "module",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "scripts": {
     "dev": "bunx tailwindcss -i ./src/tailwind.css -o ./public/global.css && bun --env-file=.env.development --hot src/server.ts",
     "build": "bun run clean && bunx tailwindcss -i ./src/tailwind.css -o ./public/global.css && tsc && tsc-alias && cp -r public dist/public",
