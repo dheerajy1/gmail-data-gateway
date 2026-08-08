@@ -1,108 +1,126 @@
 import { runtimeTag } from "@/lib/constants";
 import { env } from "@/lib/env";
-import sql from "mssql";
+import { Pool, type PoolConfig } from "pg";
 
 // ===============================================
 // 1. Config Registry
-//    Add new keys here, and IntelliSense updates automatically.
 // ===============================================
-const baseConfig: sql.config = {
-    server: env.ONPREM_DB_SERVER,
+
+const baseConfig: PoolConfig = {
+    host: env.ONPREM_DB_SERVER,
+    port: env.ONPREM_DB_PORT,
     database: env.ONPREM_DB_DATABASE,
-    user: env.ONPREM_DB_USER_SERVICE,
-    password: env.ONPREM_DB_PASSWORD_SERVICE,
-    options: {
-        encrypt: false,
-        trustServerCertificate: true,
-        appName: `${env.APP_NAME}@${runtimeTag}`,
-    },
-    pool: { max: 1, min: 0, idleTimeoutMillis: 120000 }
+    application_name: `${env.APP_NAME}@${runtimeTag}`,
+    max: 5,
+    idleTimeoutMillis: 120000,
 };
 
 const predefinedConfigs = {
-    default: baseConfig,
+    default: {
+        ...baseConfig,
+        user: env.ONPREM_DB_USER_SERVICE,
+        password: env.ONPREM_DB_PASSWORD_SERVICE,
+    },
     service: {
         ...baseConfig,
         user: env.ONPREM_DB_USER_SERVICE,
         password: env.ONPREM_DB_PASSWORD_SERVICE,
-    }
+    },
 };
 
 // ===============================================
-// 2. Type Magic
+// 2. Types
 // ===============================================
+
 type PredefinedKey = keyof typeof predefinedConfigs;
 export type PoolKey = PredefinedKey | (string & {});
 
-const pools = new Map<string, sql.ConnectionPool>();
-const connecting = new Map<string, Promise<sql.ConnectionPool>>();
+const pools = new Map<string, Pool>();
+const connecting = new Map<string, Promise<Pool>>();
 
 // ===============================================
-// 3. Clean Overloads
+// 3. Public API
 // ===============================================
 
-/** Use a predefined configuration (e.g. 'default', 'service') */
-export async function getOnPremPool(props?: { poolKey?: PredefinedKey }): Promise<sql.ConnectionPool>;
+export async function getOnPremPool(props?: {
+    poolKey?: PredefinedKey;
+}): Promise<Pool>;
 
-/** Use a completely custom configuration (requires a unique poolKey) */
-export async function getOnPremPool(props: { config: sql.config; poolKey: string }): Promise<sql.ConnectionPool>;
+export async function getOnPremPool(props: {
+    config: PoolConfig;
+    poolKey: string;
+}): Promise<Pool>;
 
-// Implementation
-export async function getOnPremPool(props: { config?: sql.config; poolKey?: string } = {}): Promise<sql.ConnectionPool> {
-    const { config, poolKey = 'default' } = props;
-    const key = poolKey;
+export async function getOnPremPool(
+    props: {
+        config?: PoolConfig;
+        poolKey?: string;
+    } = {}
+): Promise<Pool> {
+    const { config, poolKey = "default" } = props;
 
-    // Logic: If config is provided, use it. Otherwise, look up the predefined key.
-    // If the key doesn't exist in predefinedConfigs, this will throw (or you can handle gracefully).
-    const usedConfig = config || predefinedConfigs[key as PredefinedKey];
+    const usedConfig = config ?? predefinedConfigs[poolKey as PredefinedKey];
 
     if (!usedConfig) {
-        throw new Error(`No configuration found for pool key: "${key}"`);
+        throw new Error(`No configuration found for pool key "${poolKey}"`);
     }
 
-    // Return existing active connection
-    if (pools.get(key)?.connected) {
-        return pools.get(key)!;
+    const existing = pools.get(poolKey);
+
+    if (existing) {
+        return existing;
     }
 
-    // Return existing pending connection promise
-    if (connecting.has(key)) {
-        return connecting.get(key)!;
+    const pending = connecting.get(poolKey);
+
+    if (pending) {
+        return pending;
     }
 
-    // Connect new
     const promise = (async () => {
         try {
-            const pool = new sql.ConnectionPool(usedConfig);
-            await pool.connect();
-            pools.set(key, pool);
-            console.log(`_/ On-prem SQL connected (${key})`);
+            const pool = new Pool(usedConfig);
+
+            await pool.query("SELECT 1");
+
+            pools.set(poolKey, pool);
+
+            console.log(`_/ On-prem PostgreSQL connected (${poolKey})`);
+
             return pool;
         } catch (err) {
-            console.error(`X On-prem SQL connection failed (${key}):`, err);
+            console.error(
+                `X On-prem PostgreSQL connection failed (${poolKey}):`,
+                err
+            );
             throw err;
         } finally {
-            connecting.delete(key);
+            connecting.delete(poolKey);
         }
     })();
 
-    connecting.set(key, promise);
+    connecting.set(poolKey, promise);
+
     return promise;
 }
 
 // ===============================================
 // Helpers
 // ===============================================
-export function getActivePool(): sql.ConnectionPool | null {
-    return pools.get('default') ?? null;
+
+export function getActivePool(): Pool | null {
+    return pools.get("default") ?? null;
 }
 
 export function isDbConnecting(): boolean {
-    return connecting.has('default') && !pools.has('default');
+    return connecting.has("default") && !pools.has("default");
 }
 
 export async function closeAllPools() {
-    await Promise.all([...pools.values()].map(p => p.close().catch(() => { })));
+    await Promise.all(
+        [...pools.values()].map((pool) => pool.end().catch(() => {}))
+    );
+
     pools.clear();
     connecting.clear();
 }

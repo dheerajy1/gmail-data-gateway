@@ -1,0 +1,47 @@
+services:
+  # jobs-api-gateway:
+  #   container_name: jobs-api-gateway
+
+  #   build:
+  #     context: ..
+  #     dockerfile: docker/Dockerfile
+
+  #   image: jobs-api-gateway:latest
+
+  #   restart: unless-stopped
+
+  #   env_file:
+  #     - ../.env.production
+
+  #   environment:
+  #     NODE_ENV: production
+
+  #   ports:
+  #     - "8091:8091"
+
+  #   network_mode: bridge
+
+  #   extra_hosts:
+  #     - "host.docker.internal:host-gateway"
+
+  jobsdata-subscriber:
+    container_name: jobsdata-subscriber
+
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.subscriber
+
+    image: jobsdata-subscriber:latest
+
+    restart: unless-stopped
+
+    env_file:
+      - ../.env.production
+
+    environment:
+      NODE_ENV: production
+
+    network_mode: bridge
+
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

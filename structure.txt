@@ -1,0 +1,104 @@
+~/dev/vs-code/jobs-api-gateway
+
+./
+├── .env.development
+├── .env.production
+├── .eslintcache
+├── .github/
+│   ├── CODEOWNERS
+│   ├── labeler.yml
+│   ├── pull_request_template.md
+│   └── workflows/
+│       ├── pr-check-template.yml
+│       ├── pr-checks.yml
+│       ├── release.yml
+│       └── test.yml
+├── .gitignore
+├── .vscode/
+│   └── settings.json
+├── CHANGELOG.md
+├── LICENSE
+├── README.md
+├── bun.lock
+├── directory-tree.txt
+├── docker/
+│   ├── Dockerfile
+│   ├── Dockerfile.subscriber
+│   └── docker-compose.yml
+├── eslint.config.js
+├── package.json
+├── public/
+│   ├── favicon.ico
+│   ├── global.css
+│   └── logo.png
+├── release.config.js
+├── src/
+│   ├── components/
+│   │   ├── About.tsx
+│   │   ├── Healthz.tsx
+│   │   ├── Home.tsx
+│   │   ├── Layout.tsx
+│   │   └── Login.tsx
+│   ├── index.ts
+│   ├── lib/
+│   │   ├── azure-sync-job-subscriber.ts
+│   │   ├── constants.ts
+│   │   ├── db-onprem.ts
+│   │   ├── db-scripts/
+│   │   │   ├── get-db-health.ts
+│   │   │   ├── getGoogleOAuthApp.ts
+│   │   │   ├── job-azure-sync.ts
+│   │   │   ├── sp-Insert-raw-data-emails.ts
+│   │   │   ├── sp-get-last-date-emails.ts
+│   │   │   ├── spgetActiveGoogleOAuthCreds.ts
+│   │   │   └── spupsertGoogleOAuthToken.ts
+│   │   ├── db.ts
+│   │   ├── env.ts
+│   │   ├── errors.ts
+│   │   ├── generate-token.ts
+│   │   ├── getAccessToken.ts
+│   │   ├── gmail.ts
+│   │   ├── http-publish.ts
+│   │   ├── ingestMails.ts
+│   │   ├── isoNowIST.ts
+│   │   ├── port-check.ts
+│   │   └── utlis.ts
+│   ├── middleware/
+│   │   ├── auth.ts
+│   │   └── server-gate.ts
+│   ├── routes/
+│   │   ├── about.ts
+│   │   ├── healthz.ts
+│   │   ├── home.ts
+│   │   ├── login.ts
+│   │   └── v1/
+│   │       ├── admin/
+│   │       │   └── extractMails.ts
+│   │       ├── admin.router.ts
+│   │       ├── auth/
+│   │       │   └── login.ts
+│   │       ├── auth.router.ts
+│   │       └── v1.router.ts
+│   ├── schemas/
+│   │   └── login.ts
+│   ├── scripts/
+│   │   ├── db-select-test.ts
+│   │   ├── get-token-expiry.ts
+│   │   ├── gmail-azure-sync.config.cjs
+│   │   └── http-publish-test.ts
+│   ├── server.ts
+│   ├── tailwind.css
+│   ├── tests/
+│   │   └── run-ingest.ts
+│   └── types/
+│       ├── auth.ts
+│       ├── env.ts
+│       └── global.ts
+├── structure.txt
+├── tests/
+│   └── github-actions-payloads/
+│       └── push.payload.json
+├── tsconfig.json
+└── vercel.json
+
+21 directories, 79 files
