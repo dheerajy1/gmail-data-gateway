@@ -2,6 +2,7 @@
 
 ./
 ├── .env.development
+├── .env.example
 ├── .env.production
 ├── .eslintcache
 ├── .github/
@@ -27,6 +28,7 @@
 │   └── docker-compose.yml
 ├── eslint.config.js
 ├── package.json
+├── proj-flowchart.txt
 ├── public/
 │   ├── favicon.ico
 │   ├── global.css
@@ -41,27 +43,48 @@
 │   │   └── Login.tsx
 │   ├── index.ts
 │   ├── lib/
-│   │   ├── azure-sync-job-subscriber.ts
 │   │   ├── constants.ts
 │   │   ├── db-onprem.ts
 │   │   ├── db-scripts/
 │   │   │   ├── get-db-health.ts
 │   │   │   ├── getGoogleOAuthApp.ts
-│   │   │   ├── job-azure-sync.ts
-│   │   │   ├── sp-Insert-raw-data-emails.ts
 │   │   │   ├── sp-get-last-date-emails.ts
 │   │   │   ├── spgetActiveGoogleOAuthCreds.ts
 │   │   │   └── spupsertGoogleOAuthToken.ts
 │   │   ├── db.ts
 │   │   ├── env.ts
 │   │   ├── errors.ts
+│   │   ├── gateway-ws/
+│   │   │   ├── handle-gateway-message.ts
+│   │   │   ├── open-gateway-subscriber.ts
+│   │   │   ├── state.ts
+│   │   │   └── ws-publish-transport.ts
 │   │   ├── generate-token.ts
 │   │   ├── getAccessToken.ts
 │   │   ├── gmail.ts
-│   │   ├── http-publish.ts
 │   │   ├── ingestMails.ts
 │   │   ├── isoNowIST.ts
+│   │   ├── jobs-subscriber/
+│   │   │   ├── __tests__/
+│   │   │   │   ├── handlers-routing.test.ts
+│   │   │   │   ├── retry-dlq.test.ts
+│   │   │   │   └── topics-config.test.ts
+│   │   │   ├── azure/
+│   │   │   │   └── execute-write-model.ts
+│   │   │   ├── failure.ts
+│   │   │   ├── handlers/
+│   │   │   │   ├── read-model.ts
+│   │   │   │   ├── status.ts
+│   │   │   │   └── write-model.ts
+│   │   │   ├── main.ts
+│   │   │   ├── postgres/
+│   │   │   │   ├── apply-status.ts
+│   │   │   │   └── execute-read-model.ts
+│   │   │   ├── retry-policy.ts
+│   │   │   ├── status-publish.ts
+│   │   │   └── topics.ts
 │   │   ├── port-check.ts
+│   │   ├── post-to-gateway.ts
 │   │   └── utlis.ts
 │   ├── middleware/
 │   │   ├── auth.ts
@@ -80,25 +103,25 @@
 │   │       ├── auth.router.ts
 │   │       └── v1.router.ts
 │   ├── schemas/
-│   │   └── login.ts
+│   │   ├── auth.schema.ts
+│   │   ├── env.schema.ts
+│   │   ├── global.schema.ts
+│   │   ├── jobs-event.schema.ts
+│   │   ├── login.schema.ts
+│   │   ├── pipeline-status.schema.ts
+│   │   └── post-to-gateway.schema.ts
 │   ├── scripts/
 │   │   ├── db-select-test.ts
-│   │   ├── get-token-expiry.ts
-│   │   ├── gmail-azure-sync.config.cjs
-│   │   └── http-publish-test.ts
+│   │   └── get-token-expiry.ts
 │   ├── server.ts
 │   ├── tailwind.css
 │   ├── tests/
 │   │   └── run-ingest.ts
 │   └── types/
-│       ├── auth.ts
-│       ├── env.ts
-│       └── global.ts
+│       └── global.type.ts
 ├── structure.txt
 ├── tests/
-│   └── github-actions-payloads/
-│       └── push.payload.json
 ├── tsconfig.json
 └── vercel.json
 
-21 directories, 79 files
+26 directories, 97 files

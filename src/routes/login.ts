@@ -1,7 +1,7 @@
 import { Login } from "@/components/Login";
 import { getAzureSQLDbPool } from "@/lib/db";
 import { errors } from "@/lib/errors";
-import { loginSchema } from "@/schemas/login";
+import { loginSchema } from "@/schemas/login.schema";
 import { Elysia } from "elysia";
 import React from "react";
 import { renderToReadableStream } from "react-dom/server.browser";

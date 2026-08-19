@@ -221,9 +221,6 @@
   .start {
     inset-inline-start: var(--spacing);
   }
-  .end {
-    inset-inline-end: var(--spacing);
-  }
   .top-1\/2 {
     top: calc(1 / 2 * 100%);
   }
@@ -277,6 +274,9 @@
   }
   .flex {
     display: flex;
+  }
+  .hidden {
+    display: none;
   }
   .inline-flex {
     display: inline-flex;
@@ -338,6 +338,11 @@
   }
   .gap-4 {
     gap: calc(var(--spacing) * 4);
+  }
+  .truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .rounded-lg {
     border-radius: var(--radius-lg);

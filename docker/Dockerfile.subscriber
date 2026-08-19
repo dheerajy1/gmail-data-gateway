@@ -14,8 +14,8 @@ FROM debian:bookworm-slim
 
 WORKDIR /app
 
-COPY --from=builder /app/dist/azure-sync-job-subscriber .
+COPY --from=builder /app/dist/jobs-subscriber .
 
 ENV NODE_ENV=production
 
-CMD ["./azure-sync-job-subscriber"]
+CMD ["./jobs-subscriber"]

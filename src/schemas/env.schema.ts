@@ -1,0 +1,277 @@
+import { z } from "zod";
+
+export const envSchema = z.object({
+  ONPREM_SERVER_URL: z
+    .url()
+    .trim()
+    .min(1, { message: "ONPREM_SERVER_URL must be a valid string." })
+    .describe("On-prem server url."),
+
+  JWT_SECRET: z
+    .string()
+    .trim()
+    .min(1, { message: "JWT_SECRET is required and cannot be empty." })
+    .max(50, {
+      message: "JWT_SECRET must be under 50 characters long.",
+    })
+    .describe("JWT Secret used for authentication."),
+
+  // ============================
+  // Client
+  // ============================
+  CLIENT_ID: z
+    .string()
+    .trim()
+    .min(1, { message: "CLIENT_ID is required and cannot be empty." })
+    .max(50, {
+      message: "CLIENT_ID must be under 50 character long.",
+    })
+    .describe("Public client identifier."),
+
+  CLIENT_SECRET: z
+    .string()
+    .trim()
+    .min(1, { message: "CLIENT_SECRET is required and cannot be empty." })
+    .max(50, {
+      message: "CLIENT_SECRET must be under 50 characters long.",
+    })
+    .describe("Client secret used for authentication."),
+
+  // ============================
+  // Azure SQL Server Database
+  // ============================
+
+  AZURE_DB_SERVER: z
+    .string()
+    .trim()
+    .min(1, {
+      message: "AZURE_DB_SERVER is required and cannot be empty.",
+    })
+    .max(50, {
+      message: "AZURE_DB_SERVER must be under 50 characters long.",
+    })
+    .describe("Server name for azure sql server database."),
+
+  AZURE_DB_DATABASE: z
+    .string()
+    .trim()
+    .min(1, {
+      message: "AZURE_DB_DATABASE is required and cannot be empty.",
+    })
+    .max(50, {
+      message: "AZURE_DB_DATABASE must be under 50 characters long.",
+    })
+    .describe("Database name for azure sql server database."),
+
+  // public login account
+  AZURE_DB_USER_PUBLIC: z
+    .string()
+    .trim()
+    .min(1, {
+      message: "AZURE_DB_USER_PUBLIC is required and cannot be empty.",
+    })
+    .max(50, {
+      message: "AZURE_DB_USER_PUBLIC must be under 50 characters long.",
+    })
+    .describe("Username for azure sql server database public login account."),
+
+  AZURE_DB_PASSWORD_PUBLIC: z
+    .string()
+    .trim()
+    .min(1, {
+      message: "AZURE_DB_PASSWORD_PUBLIC is required and cannot be empty.",
+    })
+    .max(50, {
+      message: "AZURE_DB_PASSWORD_PUBLIC must be under 50 characters long.",
+    })
+    .describe("Password for azure sql server database public login account."),
+
+  // service login account
+  AZURE_DB_USER_SERVICE: z
+    .string()
+    .trim()
+    .min(1, {
+      message: "AZURE_DB_USER_SERVICE is required and cannot be empty.",
+    })
+    .max(50, {
+      message: "AZURE_DB_USER_SERVICE must be under 50 characters long.",
+    })
+    .describe("Username for azure sql server database service login account."),
+
+  AZURE_DB_PASSWORD_SERVICE: z
+    .string()
+    .trim()
+    .min(1, {
+      message: "AZURE_DB_PASSWORD_SERVICE is required and cannot be empty.",
+    })
+    .max(50, {
+      message: "AZURE_DB_PASSWORD_SERVICE must be under 50 characters long.",
+    })
+    .describe("Password for azure sql server database service login account."),
+
+  // ============================
+  // On-prem SQL Server
+  // ============================
+
+  ONPREM_DB_SERVER: z
+    .string()
+    .trim()
+    .min(1, {
+      message: "ONPREM_DB_SERVER is required and cannot be empty.",
+    })
+    .max(50, {
+      message: "ONPREM_DB_SERVER must be under 50 characters long.",
+    })
+    .describe("Server name for On-prem sql server."),
+
+  ONPREM_DB_PORT: z.coerce
+    .number()
+    .int()
+    .positive()
+    .describe("Port for On-prem PostgreSQL"),
+
+  ONPREM_DB_DATABASE: z
+    .string()
+    .trim()
+    .min(1, {
+      message: "ONPREM_DB_DATABASE is required and cannot be empty.",
+    })
+    .max(50, {
+      message: "ONPREM_DB_DATABASE must be under 50 characters long.",
+    })
+    .describe("Database name for On-prem db sql login account."),
+
+  // service login account
+  ONPREM_DB_USER_SERVICE: z
+    .string()
+    .trim()
+    .min(1, {
+      message: "ONPREM_DB_USER_SERVICE is required and cannot be empty.",
+    })
+    .max(50, {
+      message: "ONPREM_DB_USER_SERVICE must be under 50 characters long.",
+    })
+    .describe(
+      "Username for On-prem sql server database service login account.",
+    ),
+
+  ONPREM_DB_PASSWORD_SERVICE: z
+    .string()
+    .trim()
+    .min(1, {
+      message: "ONPREM_DB_PASSWORD_SERVICE is required and cannot be empty.",
+    })
+    .max(50, {
+      message: "ONPREM_DB_PASSWORD_SERVICE must be under 50 characters long.",
+    })
+    .describe(
+      "Password for On-prem sql server database service login account.",
+    ),
+
+  APP_NAME: z
+    .string()
+    .trim()
+    .min(1, { message: "APP_ENV is required and cannot be empty." })
+    .max(50, {
+      message: "APP_ENV must be under 50 characters long.",
+    })
+    .describe("App environment"),
+
+  // ============================
+  // Kafka
+  // ============================
+
+  KAFKA_API_KEY: z
+    .string()
+    .trim()
+    .min(1, { message: "CLIENT_ID is required and cannot be empty." })
+    .max(50, {
+      message: "CLIENT_ID must be under 50 character long.",
+    })
+    .describe("Kafka api key used for authentication."),
+
+  KAFKA_API_KEY_SECRET: z
+    .string()
+    .trim()
+    .min(1, { message: "CLIENT_SECRET is required and cannot be empty." })
+    .max(300, {
+      message: "CLIENT_SECRET must be under 50 characters long.",
+    })
+    .describe("Kafka api secret used for authentication."),
+
+
+  // ============================
+  // Jobs Kafka subscriber topics (Phase 2A)
+  // ============================
+
+  SOURCE_CLIENT_ID: z
+    .string()
+    .trim()
+    .min(1, { message: "SOURCE_CLIENT_ID is required and cannot be empty." })
+    .max(100, {
+      message: "SOURCE_CLIENT_ID must be under 100 characters long.",
+    })
+    .describe("Subscriber identity sent as x-subscriber-id to Kafka Gateway."),
+
+  JOBS_WRITE_TOPIC: z
+    .string()
+    .trim()
+    .min(1, { message: "JOBS_WRITE_TOPIC is required and cannot be empty" })
+    .max(100)
+    .describe("jobs-ingest-write-model topic name"),
+
+  JOBS_WRITE_DLQ_TOPIC: z
+    .string()
+    .trim()
+    .min(1, { message: "JOBS_WRITE_DLQ_TOPIC is required and cannot be empty" })
+    .max(100)
+    .describe("jobs-ingest-write-model-dlq topic name"),
+
+  JOBS_READ_TOPIC: z
+    .string()
+    .trim()
+    .min(1, { message: "JOBS_READ_TOPIC is required and cannot be empty" })
+    .max(100)
+    .describe("jobs-ingest-read-model topic name"),
+
+  JOBS_READ_DLQ_TOPIC: z
+    .string()
+    .trim()
+    .min(1, { message: "JOBS_READ_DLQ_TOPIC is required and cannot be empty" })
+    .max(100)
+    .describe("jobs-ingest-read-model-dlq topic name"),
+
+  JOBS_STATUS_TOPIC: z
+    .string()
+    .trim()
+    .min(1, { message: "JOBS_STATUS_TOPIC is required and cannot be empty" })
+    .max(100)
+    .describe("jobs-status topic name"),
+
+  JOBS_WRITE_MODEL_PROCEDURE: z
+    .string()
+    .trim()
+    .min(1)
+    .max(200)
+    .default("[02sjobsData].[02spinsertRawAppliedJobs]")
+    .describe("Azure write-model stored procedure name"),
+
+  JOBS_READ_MODEL_PROCEDURE: z
+    .string()
+    .trim()
+    .min(1)
+    .max(200)
+    .default("sp_kafka_apply_committed_records")
+    .describe("PostgreSQL read-model stored procedure name"),
+
+  // ============================
+  // Google
+  // ============================
+
+  Google_APPID: z.coerce
+    .number()
+    .min(1, { message: "Google_APPID is required and cannot be empty." })
+    .max(300, {
+      message: "Google_APPID must be under 300 character long.",
+    }),
+});

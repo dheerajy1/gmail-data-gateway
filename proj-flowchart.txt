@@ -1,0 +1,59 @@
+================================================================================
+ PROJECT FLOW — Jobs API Gateway (Phase 2B final)
+================================================================================
+
+[I] CLIENT
+    Admin / test client
+         |
+         |  POST /api/v1/admin/extractMails
+         |  Body: { type, query, … }
+         v
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ [II] JOBS API  (jobs-api-gateway)                                             │
+│  1. Auth + Gmail ingest                                                      │
+│  2. correlationId = UUIDv7                                                   │
+│  3. Domain event { correlationId, job, sourceClientId, records[] }           │
+│  4. postToGateway → topic jobs-ingest-write-model                            │
+│  5. HTTP 200 ACCEPTED (async — does NOT call Azure SP)                       │
+└───────────────────────────────────┬──────────────────────────────────────────┘
+                                    |
+                                    v
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ [III] KAFKA API GATEWAY (external)                                            │
+│  HTTP publish + WS subscribe · DB-backed topic registry                      │
+└───────────────────────────────────┬──────────────────────────────────────────┘
+                                    |
+                                    v
+                                  KAFKA
+         +--------------------------+--------------------------+
+         |                          |                          |
+         v                          v                          v
+ jobs-ingest-write-model   jobs-ingest-read-model         jobs-status
+         |                          |                          |
+         +------------+-------------+------------+-------------+
+                      |                          |
+                      v                          |
+┌─────────────────────────────────────────────────────────────┐
+│ [IV] ONE JOBS SUBSCRIBER · ONE WebSocket · THREE handlers    │
+│                                                              │
+│  WRITE: Azure 02spinsertRawAppliedJobs(@correlationId,@input)│
+│         → publish read-model → ACK                           │
+│         fail → retry → jobs-ingest-write-model-dlq → ACK     │
+│                                                              │
+│  READ:  CALL sp_kafka_apply_committed_records                │
+│         (azure_id NULL; does NOT query Azure) → ACK          │
+│         fail → retry → jobs-ingest-read-model-dlq → ACK      │
+│                                                              │
+│  STATUS: fn_pipeline_apply_status (eventId preserved) → ACK  │
+│          fail → no ACK · no status DLQ                       │
+└──────────────┬───────────────────────────┬───────────────────┘
+               |                           |
+               v                           v
+         Azure SQL                   PostgreSQL
+    04trawAppliedJobs            raw_applied_jobs (azure_id nullable)
+    07twriteOperation            bronze_applied_jobs
+    02spinsertRawAppliedJobs     kafka_write_operation
+                                 pipeline_event / pipeline_execution
+
+Separate (not Kafka read-model): Azure Change Tracking → PostgreSQL sync
+  reconciles by azure_id OR email_id so Kafka rows can receive Azure IDs later.
