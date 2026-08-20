@@ -11,6 +11,8 @@
     "test:ingest": "bun --env-file=.env.development src/tests/run-ingest.ts",
     "token:gen": "bun --env-file=.env.development src/lib/generate-token.ts",
     "token:getexpat": "bun --env-file=.env.development src/scripts/get-token-expiry.ts",
+    "test:count-bulk": "bun --env-file=.env.development src/scripts/count-bulk.ts",
+    "test:count-sync": "bun --env-file=.env.development src/scripts/count-sync.ts",
     "build": "bun run clean && bunx tailwindcss -i ./src/tailwind.css -o ./public/global.css && tsc && tsc-alias && cp -r public dist/public",
     "start": "bun --env-file=.env.production dist/server.js",
     "clean": "rm -rf dist/* dist/.* || true",

@@ -1,6 +1,6 @@
 import { env } from "@/lib/env";
 import { apiResponses } from "@/lib/errors";
-import { ingestMails } from "@/lib/ingestMails";
+import { ingestMails } from "@/lib/ingest-mails/ingest-mails";
 import { JOBS_TOPICS } from "@/lib/jobs-subscriber/topics";
 import { postToGateway } from "@/lib/post-to-gateway";
 import { Auth } from "@/middleware/auth";
