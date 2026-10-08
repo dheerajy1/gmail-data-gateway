@@ -3,7 +3,6 @@
   "type": "module",
   "version": "1.0.1",
   "scripts": {
-    "dev": "bunx tailwindcss -i ./src/tailwind.css -o ./public/global.css && bun --env-file=.env.development --hot src/server.ts",
     "type-check": "tsc --noEmit",
     "lint": "eslint . --cache --cache-location .eslintcache",
     "test": "bun --env-file=.env.development test",
@@ -13,6 +12,7 @@
     "token:getexpat": "bun --env-file=.env.development src/scripts/get-token-expiry.ts",
     "test:count-bulk": "bun --env-file=.env.development src/scripts/count-bulk.ts",
     "test:count-sync": "bun --env-file=.env.development src/scripts/count-sync.ts",
+    "dev": "bunx tailwindcss -i ./src/tailwind.css -o ./public/global.css && bun --env-file=.env.development --hot src/server.ts",
     "build": "bun run clean && bunx tailwindcss -i ./src/tailwind.css -o ./public/global.css && tsc && tsc-alias && cp -r public dist/public",
     "start": "bun --env-file=.env.production dist/server.js",
     "clean": "rm -rf dist/* dist/.* || true",

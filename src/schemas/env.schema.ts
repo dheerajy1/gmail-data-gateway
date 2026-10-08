@@ -1,6 +1,12 @@
 import { z } from "zod";
 
 export const envSchema = z.object({
+    APP_PORT: z.coerce
+    .number()
+    .int()
+    .positive()
+    .describe("Port for application service"),
+    
   ONPREM_SERVER_URL: z
     .url()
     .trim()

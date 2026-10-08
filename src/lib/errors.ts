@@ -530,6 +530,10 @@ export const errors = {
       message: "Database service temporarily unavailable. Please retry later.",
       error: "Database unavailable"
     },
+     DB_PROBE_FAILED: {
+      message: "Database connection validation probe failed",
+      error: "Database is disconnected or unreachable",
+    },
   },
 
   GATEWAY_TIMEOUT: {

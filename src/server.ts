@@ -1,8 +1,8 @@
 import app from "@/index";
-import { isProd } from "@/lib/constants";
 import { listenIfPortFree } from "@/lib/port-check"
+import { env } from "@/lib/env";
 
-const port = isProd ? listenIfPortFree({ port: 8091 }) : 5001;
+const port = listenIfPortFree({ port: env.APP_PORT });
 
 app.listen(port, () => {
   console.log(`🚀 Gmail data gateway api running on http://localhost:${port}`)
