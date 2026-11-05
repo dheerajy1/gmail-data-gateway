@@ -2,7 +2,9 @@ import { ALLOWED_ORIGINS, publicPath } from "@/lib/constants";
 import { MyError, errors } from "@/lib/errors";
 import { serverGate } from "@/middleware/server-gate";
 import aboutRouter from "@/routes/about";
-import healthzRouter from "@/routes/healthz";
+import healthzAppRouter from "@/routes/healthz/app";
+import healthzDbRouter from "@/routes/healthz/db";
+import healthzRouter from "@/routes/healthz/healthz";
 import homeRouter from "@/routes/home";
 import loginRouter from "@/routes/login";
 import v1Router from "@/routes/v1/v1.router";
@@ -36,6 +38,8 @@ const app = new Elysia()
           "/login",
           "/home",
           "/about",
+          "/healthz/app",
+          "/healthz/db",
           "/healthz",
         ]
       }
@@ -182,6 +186,8 @@ app.onBeforeHandle(({ request, cookie }) => {
 
 app.use(homeRouter);
 app.use(aboutRouter);
+app.use(healthzAppRouter);
+app.use(healthzDbRouter);
 app.use(healthzRouter);
 
 // ===============================================

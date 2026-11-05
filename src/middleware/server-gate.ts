@@ -1,6 +1,6 @@
 import { env } from "@/lib/env";
 import { MyError, errors } from "@/lib/errors";
-import { NoAuthHeadersSchema } from "@/types/auth";
+import { NoAuthHeadersSchema } from "@/schemas/auth.schema";
 
 type serverGateProps = {
   request: Request;
@@ -8,7 +8,6 @@ type serverGateProps = {
 
 export function serverGate({ request }: serverGateProps): boolean {
   try {
-
     const accept = request.headers.get("accept") ?? "";
     if (accept.includes("text/html")) {
       return false;
@@ -35,11 +34,12 @@ export function serverGate({ request }: serverGateProps): boolean {
 
     const parsed = parseResult.data;
 
-    const valid = parsed["x-client-id"] === env.CLIENT_ID && parsed["x-client-secret"] === env.CLIENT_SECRET;
+    const valid =
+      parsed["x-client-id"] === env.CLIENT_ID &&
+      parsed["x-client-secret"] === env.CLIENT_SECRET;
 
     return valid;
   } catch {
-
     // console.error(`serverGate error`, error); // (error: unknown)
 
     return false;

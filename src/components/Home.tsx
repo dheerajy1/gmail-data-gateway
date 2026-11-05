@@ -14,6 +14,8 @@ export function Home({ title, bunVersion }: Props): React.ReactElement {
             ["/openapi/json", "OpenAPI spec"],
             ["/openapi", "Scalar UI"],
             ["/healthz", "Health"],
+            ["/healthz/app", "Health app"],
+            ["/healthz/db", "Health db"],
           ].map(([href, label]) => (
             <a
               key={href}
@@ -38,7 +40,7 @@ export function Home({ title, bunVersion }: Props): React.ReactElement {
           <img
             src="/logo.png"
             alt="Logo"
-            className="w-(--width-logo) h-auto border border-border-thick rounded-md"
+            className="w-logo h-auto border border-border-thick rounded-md"
           />
         </section>
       </div>

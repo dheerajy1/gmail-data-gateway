@@ -1,9 +1,16 @@
-import { sendHttpPublish } from "@/lib/http-publish";
+import { postToGateway } from "@/lib/post-to-gateway";
 
 async function main() {
   console.log("Sending HTTP publish...");
 
-  await sendHttpPublish();
+  await postToGateway({
+    topic: "gateway-test",
+    correlationId: Bun.randomUUIDv7(),
+    value: {
+      message: "HTTP publish test",
+      timestamp: new Date().toISOString(),
+    },
+  });
 
   console.log("Done.");
 }

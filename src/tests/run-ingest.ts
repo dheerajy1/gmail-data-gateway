@@ -1,4 +1,4 @@
-import { ingestMails } from "@/lib/ingestMails";
+import { ingestMails } from "@/lib/ingest-mails/ingest-mails";
 import { isoNowIST } from "@/lib/isoNowIST";
 
 const res = await ingestMails({
