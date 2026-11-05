@@ -12,4 +12,4 @@ permissions:
 jobs:
   test:
     name: Test
-    uses: dheerajy1/.github/.github/workflows/test.yml@main
+    uses: dheerajy1/.github/.github/workflows/test-rust.yml@main
