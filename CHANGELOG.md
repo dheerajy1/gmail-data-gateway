@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/dheerajy1/gmail-data-gateway/compare/v1.0.2...v1.1.0) (2026-11-05)
+
+
+### Features
+
+* introduce Kafka-first jobs pipeline and PostgreSQL infrastructure ([#4](https://github.com/dheerajy1/gmail-data-gateway/issues/4)) ([9d9caa1](https://github.com/dheerajy1/gmail-data-gateway/commit/9d9caa196a9c51e10d3ee65e345b19bfe57f00f7))
+
 ## [1.0.2](https://github.com/dheerajy1/gmail-data-gateway/compare/v1.0.1...v1.0.2) (2026-08-08)
 
 
