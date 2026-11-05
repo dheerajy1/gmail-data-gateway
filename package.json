@@ -16,6 +16,7 @@
     "build": "bun run clean && bunx tailwindcss -i ./src/tailwind.css -o ./public/global.css && tsc && tsc-alias && cp -r public dist/public",
     "start": "bun --env-file=.env.production dist/server.js",
     "clean": "rm -rf dist/* dist/.* || true",
+    "clean:nm": "rm -rf node_modules",
     "dev:jobs-subscriber": "bun --env-file=.env.development src/lib/jobs-subscriber/main.ts",
     "test:jobs-subscriber": "bun --env-file=.env.development test src/lib/jobs-subscriber",
     "build:jobs-subscriber": "bun build ./src/lib/jobs-subscriber/main.ts --target=bun --outfile=dist/jobs-subscriber.js",
