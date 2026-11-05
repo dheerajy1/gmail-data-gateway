@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/dheerajy1/gmail-data-gateway/compare/v1.0.1...v1.0.2) (2026-08-08)
+
+
+### Bug Fixes
+
+* migrate to PostgreSQL, introduce Docker infrastructure, and enable Azure sync procedure ([#3](https://github.com/dheerajy1/gmail-data-gateway/issues/3)) ([e9e388e](https://github.com/dheerajy1/gmail-data-gateway/commit/e9e388e9f280f56e91336588eb7724cece219caa))
+
 ## [1.0.1](https://github.com/dheerajy1/gmail-data-gateway/compare/v1.0.0...v1.0.1) (2026-05-17)
 
 
