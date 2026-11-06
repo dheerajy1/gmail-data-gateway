@@ -20,7 +20,7 @@ router.get(
     const [app, db] = await Promise.all([getAppHealth(), getDbHealth()]);
     const body = {
       success: true,
-      httpCode: 200,
+      statusCode: 200,
       message: "Health check OK",
       data: { app, db },
     };

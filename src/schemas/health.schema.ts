@@ -33,21 +33,21 @@ const UnifiedHealthDataSchema = z.object({
 
 export const SuccessAppSchema = z.object({
   success: z.literal(true),
-  httpCode: z.literal(200),
+  statusCode: z.literal(200),
   message: z.string(),
   data: AppHealthDataSchema,
 });
 
 export const SuccessDbSchema = z.object({
   success: z.literal(true),
-  httpCode: z.literal(200),
+  statusCode: z.literal(200),
   message: z.string(),
   data: DbHealthDataSchema,
 });
 
 export const SuccessUnifiedSchema = z.object({
   success: z.literal(true),
-  httpCode: z.literal(200),
+  statusCode: z.literal(200),
   message: z.string(),
   data: UnifiedHealthDataSchema,
 });

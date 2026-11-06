@@ -7,7 +7,7 @@ type Props = {
   title: string;
   response: {
     success: boolean;
-    httpCode: number;
+    statusCode: number;
     message: string;
     data: DbHealthDataSchemaType;
   };
@@ -72,7 +72,11 @@ function StatusIcon({ status }: { status: "UP" | "DOWN" }) {
   );
 }
 
-function DbIcon({ database }: { database: DbHealthDataSchemaType["database"] }) {
+function DbIcon({
+  database,
+}: {
+  database: DbHealthDataSchemaType["database"];
+}) {
   if (database === "CONNECTED") {
     return (
       <>

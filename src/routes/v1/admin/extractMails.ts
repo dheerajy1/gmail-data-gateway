@@ -29,7 +29,7 @@ router.post(
     if (dataEm.length === 0) {
       return status(200, {
         success: true,
-        httpCode: 200,
+        statusCode: 200,
         message: "No messages found for the given query.",
         data: {
           correlationId: null,
@@ -69,7 +69,7 @@ router.post(
 
     return status(200, {
       success: true,
-      httpCode: 200,
+      statusCode: 200,
       message: `${type} accepted. Write-model event published; Azure and PostgreSQL processing is asynchronous.`,
       data: {
         correlationId,
@@ -128,7 +128,7 @@ router.post(
           success: {
             200: z.object({
               success: z.literal(true),
-              httpCode: z.literal(200),
+              statusCode: z.literal(200),
               message: z.string(),
               data: z.object({
                 correlationId: z.string().nullable(),

@@ -10,7 +10,7 @@ type Props = {
   title: string;
   response: {
     success: boolean;
-    httpCode: number;
+    statusCode: number;
     message: string;
     data: {
       app: AppHealthDataSchemaType;

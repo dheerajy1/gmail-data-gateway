@@ -19,7 +19,7 @@ router.get(
     const data = getAppHealth();
     const body = {
       success: true,
-      httpCode: 200,
+      statusCode: 200,
       message: "Application is running",
       data,
     };
