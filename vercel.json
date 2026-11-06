@@ -1,3 +1,7 @@
 {
-  "bunVersion": "1.x"
+  "framework": "rust",
+  "buildCommand": null,
+  "installCommand": null,
+  "outputDirectory": null,
+  "devCommand": null
 }

@@ -120,3 +120,5 @@ pids
 
 # ESLint
 .eslintcache
+
+.agent

@@ -1,11 +1,7 @@
-~/dev/vs-code/jobs-api-gateway
+~/dev/vs-code/jobs-api-gateway-rust
 
 ./
-├── .env.development
 ├── .env.example
-├── .env.preview
-├── .env.production
-├── .eslintcache
 ├── .github/
 │   ├── CODEOWNERS
 │   ├── labeler.yml
@@ -16,119 +12,20 @@
 │       ├── release.yml
 │       └── test.yml
 ├── .gitignore
-├── .infisical.json
-├── .vscode/
-│   └── settings.json
+├── .releaserc.json*
 ├── CHANGELOG.md
 ├── LICENSE
 ├── README.md
-├── bun.lock
-├── directory-tree.txt
 ├── docker/
 │   ├── Dockerfile
 │   ├── Dockerfile.subscriber
 │   └── docker-compose.yml
-├── eslint.config.js
-├── package.json
 ├── proj-flowchart.txt
 ├── public/
-│   ├── favicon.ico
+│   ├── favicon.ico*
 │   ├── global.css
-│   └── logo.png
-├── release.config.js
-├── src/
-│   ├── components/
-│   │   ├── About.tsx
-│   │   ├── Healthz.tsx
-│   │   ├── Home.tsx
-│   │   ├── Layout.tsx
-│   │   └── Login.tsx
-│   ├── index.ts
-│   ├── lib/
-│   │   ├── constants.ts
-│   │   ├── db-onprem.ts
-│   │   ├── db-scripts/
-│   │   │   ├── get-db-health.ts
-│   │   │   ├── getGoogleOAuthApp.ts
-│   │   │   ├── sp-get-last-date-emails.ts
-│   │   │   ├── spgetActiveGoogleOAuthCreds.ts
-│   │   │   └── spupsertGoogleOAuthToken.ts
-│   │   ├── db.ts
-│   │   ├── env.ts
-│   │   ├── errors.ts
-│   │   ├── gateway-ws/
-│   │   │   ├── handle-gateway-message.ts
-│   │   │   ├── open-gateway-subscriber.ts
-│   │   │   ├── state.ts
-│   │   │   └── ws-publish-transport.ts
-│   │   ├── generate-token.ts
-│   │   ├── getAccessToken.ts
-│   │   ├── gmail.ts
-│   │   ├── ingest-mails/
-│   │   │   ├── fetch-messages.ts
-│   │   │   ├── ingest-mails.ts
-│   │   │   └── message-detail.ts
-│   │   ├── isoNowIST.ts
-│   │   ├── jobs-subscriber/
-│   │   │   ├── __tests__/
-│   │   │   │   ├── handlers-routing.test.ts
-│   │   │   │   ├── retry-dlq.test.ts
-│   │   │   │   └── topics-config.test.ts
-│   │   │   ├── azure/
-│   │   │   │   └── execute-write-model.ts
-│   │   │   ├── failure.ts
-│   │   │   ├── handlers/
-│   │   │   │   ├── read-model.ts
-│   │   │   │   ├── status.ts
-│   │   │   │   └── write-model.ts
-│   │   │   ├── main.ts
-│   │   │   ├── postgres/
-│   │   │   │   ├── apply-status.ts
-│   │   │   │   └── execute-read-model.ts
-│   │   │   ├── retry-policy.ts
-│   │   │   ├── status-publish.ts
-│   │   │   └── topics.ts
-│   │   ├── port-check.ts
-│   │   ├── post-to-gateway.ts
-│   │   └── utlis.ts
-│   ├── middleware/
-│   │   ├── auth.ts
-│   │   └── server-gate.ts
-│   ├── routes/
-│   │   ├── about.ts
-│   │   ├── healthz.ts
-│   │   ├── home.ts
-│   │   ├── login.ts
-│   │   └── v1/
-│   │       ├── admin/
-│   │       │   └── extractMails.ts
-│   │       ├── admin.router.ts
-│   │       ├── auth/
-│   │       │   └── login.ts
-│   │       ├── auth.router.ts
-│   │       └── v1.router.ts
-│   ├── schemas/
-│   │   ├── auth.schema.ts
-│   │   ├── env.schema.ts
-│   │   ├── global.schema.ts
-│   │   ├── jobs-event.schema.ts
-│   │   ├── login.schema.ts
-│   │   ├── pipeline-status.schema.ts
-│   │   └── post-to-gateway.schema.ts
-│   ├── scripts/
-│   │   ├── count-bulk.ts
-│   │   ├── count-sync.ts
-│   │   ├── db-select-test.ts
-│   │   └── get-token-expiry.ts
-│   ├── server.ts
-│   ├── tailwind.css
-│   ├── tests/
-│   │   └── run-ingest.ts
-│   └── types/
-│       └── global.type.ts
+│   └── logo.png*
 ├── structure.txt
-├── tests/
-├── tsconfig.json
-└── vercel.json
+└── vercel.json*
 
-27 directories, 103 files
+5 directories, 22 files
