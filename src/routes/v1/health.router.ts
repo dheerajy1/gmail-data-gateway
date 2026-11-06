@@ -36,7 +36,7 @@ router.get(
 
     return status(200, {
       success: true,
-      httpCode: 200,
+      statusCode: 200,
       message: "Health check OK",
       data: { app, db },
     });
@@ -70,7 +70,7 @@ router.get(
     const data = getAppHealth();
     return status(200, {
       success: true,
-      httpCode: 200,
+      statusCode: 200,
       message: "Application is running",
       data,
     });
@@ -111,7 +111,7 @@ router.get(
 
     return status(200, {
       success: true,
-      httpCode: 200,
+      statusCode: 200,
       message: "Database connection successful",
       data,
     });

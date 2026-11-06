@@ -19,7 +19,7 @@ router.get(
     const data = await getDbHealth();
     const body = {
       success: true,
-      httpCode: 200,
+      statusCode: 200,
       message:
         data.status === "UP"
           ? "Database connection successful"

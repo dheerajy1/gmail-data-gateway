@@ -90,7 +90,7 @@ router.post(
 
     return status(200, {
       success: true,
-      httpCode: 200,
+      statusCode: 200,
       message: "Login successful",
       data: {
         token: token,

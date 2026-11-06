@@ -28,8 +28,8 @@ const app = new Elysia()
       documentation: {
         info: {
           title: "Gmail data gateway API",
-          version: "v1"
-        }
+          version: "v1",
+        },
       },
       exclude: {
         paths: [
@@ -41,18 +41,16 @@ const app = new Elysia()
           "/healthz/app",
           "/healthz/db",
           "/healthz",
-        ]
-      }
-    })
+        ],
+      },
+    }),
   )
   .onError(({ error, status, code }) => {
-
     switch (true) {
-
       case error instanceof MyError:
-        return status(error.httpCode, {
+        return status(error.statusCode, {
           success: false,
-          httpCode: error.httpCode,
+          statusCode: error.statusCode,
           code: error.code,
           message: error.message,
           error: error.error,
@@ -61,35 +59,34 @@ const app = new Elysia()
       case error instanceof ZodError:
         return status(400, {
           success: false,
-          httpCode: 400,
+          statusCode: 400,
           code: error.name,
           message: error.message,
           error: error.issues,
         });
 
-      case code === 'VALIDATION':
+      case code === "VALIDATION":
         return status(error.status, {
           success: false,
-          httpCode: error.status,
+          statusCode: error.status,
           code: error.code,
           message: error.messageValue?.path
             ? Array.isArray(error.messageValue.path)
               ? error.messageValue.path.flat(Infinity).toString()
               : error.messageValue.path
-            : '',
+            : "",
           error: error.customError,
         });
 
       default:
         return status(500, {
           success: false,
-          httpCode: 500,
-          code: 'INTERNAL_SERVER_ERROR',
+          statusCode: 500,
+          code: "INTERNAL_SERVER_ERROR",
           message: errors.INTERNAL_SERVER_ERROR.SERVER_ERROR.message,
           error: errors.INTERNAL_SERVER_ERROR.SERVER_ERROR.error,
         });
     }
-
   });
 
 // ===============================================
@@ -106,11 +103,7 @@ app.use(
 
       if (ALLOWED_ORIGINS.fixed.includes(origin)) return true;
 
-      if (
-        ALLOWED_ORIGINS.wildcards.some((domain) =>
-          origin.endsWith(domain)
-        )
-      )
+      if (ALLOWED_ORIGINS.wildcards.some((domain) => origin.endsWith(domain)))
         return true;
 
       return false;
@@ -120,21 +113,23 @@ app.use(
       "Content-Type",
       "Authorization",
       "X-Client-Id",
-      "X-Client-Secret"
+      "X-Client-Secret",
     ],
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
-  })
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  }),
 );
 
 // ===============================================
 // Static assets
 // ===============================================
 
-app.use(staticPlugin({
-  assets: publicPath,
-  prefix: "/",
-  alwaysStatic: false,
-}));
+app.use(
+  staticPlugin({
+    assets: publicPath,
+    prefix: "/",
+    alwaysStatic: false,
+  }),
+);
 
 // ===============================================
 // Docs login (ONLY public thing)
@@ -147,7 +142,6 @@ app.use(loginRouter);
 // ===============================================
 
 app.onBeforeHandle(({ request, cookie }) => {
-
   const url = new URL(request.url);
   const path = url.pathname;
 
@@ -175,8 +169,8 @@ app.onBeforeHandle(({ request, cookie }) => {
   return new Response(null, {
     status: 302,
     headers: {
-      Location: "/login"
-    }
+      Location: "/login",
+    },
   });
 });
 
