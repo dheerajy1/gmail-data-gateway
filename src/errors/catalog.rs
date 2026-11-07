@@ -51,6 +51,12 @@ pub mod unauthorized {
         "JWT is missing required subject (sub) or role claim",
         "missing_sub_or_role",
     );
+
+    pub const INVALID_CREDENTIALS: CatalogEntry = CatalogEntry::new(
+        ErrorCode::Unauthorized,
+        "The username or password you entered is incorrect.",
+        "Invalid credentials",
+    );
 }
 
 // 400 entries
@@ -61,6 +67,23 @@ pub mod bad_request {
         ErrorCode::BadRequest,
         "Some request information is invalid or malformed.",
         "Invalid authentication header values",
+    );
+
+    pub const INVALID_INPUT: CatalogEntry = CatalogEntry::new(
+        ErrorCode::BadRequest,
+        "One or more input fields contain invalid values.",
+        "Invalid input data",
+    );
+}
+
+// 403 entries
+pub mod forbidden {
+    use super::{CatalogEntry, ErrorCode};
+
+    pub const ACCESS_DENIED: CatalogEntry = CatalogEntry::new(
+        ErrorCode::Forbidden,
+        "You are not allowed to perform this action.",
+        "You do not have permission to perform this action",
     );
 }
 
@@ -95,6 +118,29 @@ pub mod internal_server_error {
         "Something went wrong. Please try again later.",
         "Something went wrong on the server",
     );
+
+    pub const TOKEN_SIGNING_FAILED: CatalogEntry = CatalogEntry::new(
+        ErrorCode::InternalServerError,
+        "Failed to generate authentication token due to an internal error.",
+        "Token signing failed",
+    );
+
+    pub const DATABASE_ERROR: CatalogEntry = CatalogEntry::new(
+        ErrorCode::InternalServerError,
+        "A database error occurred while processing the request.",
+        "Database error",
+    );
+}
+
+// 503 entries
+pub mod service_unavailable {
+    use super::{CatalogEntry, ErrorCode};
+
+    pub const DB_PROBE_FAILED: CatalogEntry = CatalogEntry::new(
+        ErrorCode::ServiceUnavailable,
+        "Database connection validation probe failed",
+        "Database is disconnected or unreachable",
+    );
 }
 
 #[cfg(test)]
@@ -102,16 +148,22 @@ mod tests {
     use super::*;
 
     // Every entry in the catalogue with the http status it must map to
-    const ENTRIES: [(CatalogEntry, u16); 9] = [
+    const ENTRIES: [(CatalogEntry, u16); 15] = [
         (unauthorized::MISSING_AUTH_HEADERS, 401),
         (unauthorized::MISSING_AUTHORIZATION_TOKEN, 401),
         (unauthorized::EXPIRED_TOKEN, 401),
         (unauthorized::INVALID_TOKEN, 401),
         (unauthorized::MISSING_SUB_OR_ROLE, 401),
+        (unauthorized::INVALID_CREDENTIALS, 401),
         (bad_request::INVALID_HEADER_VALUES, 400),
+        (bad_request::INVALID_INPUT, 400),
+        (forbidden::ACCESS_DENIED, 403),
         (not_found::RESOURCE_NOT_FOUND, 404),
         (method_not_supported::METHOD_NOT_ALLOWED, 405),
         (internal_server_error::SERVER_ERROR, 500),
+        (internal_server_error::TOKEN_SIGNING_FAILED, 500),
+        (internal_server_error::DATABASE_ERROR, 500),
+        (service_unavailable::DB_PROBE_FAILED, 503),
     ];
 
     // Each entry maps to the stated http status and has a message and error text
@@ -136,6 +188,7 @@ mod tests {
             (ErrorCode::MethodNotSupported, "METHOD_NOT_SUPPORTED", 405),
             (ErrorCode::TooManyRequests, "TOO_MANY_REQUESTS", 429),
             (ErrorCode::InternalServerError, "INTERNAL_SERVER_ERROR", 500),
+            (ErrorCode::ServiceUnavailable, "SERVICE_UNAVAILABLE", 503),
         ];
 
         for (code, name, status) in codes {

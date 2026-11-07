@@ -62,12 +62,13 @@ pub fn auth_headers() -> [(&'static str, &'static str); 2] {
     ]
 }
 
-// Sends one request with the given method and headers through the given router, after the test env is set
-pub async fn send(
+// Sends one request with the given method, headers and body through the given router, after the test env is set
+pub async fn send_with_body(
     router: Router,
     method: &str,
     uri: &str,
     headers: &[(&str, &str)],
+    body: &str,
 ) -> Response<Body> {
     setup_env();
 
@@ -78,13 +79,29 @@ pub async fn send(
     }
 
     router
-        .oneshot(request.body(Body::empty()).unwrap())
+        .oneshot(request.body(Body::from(body.to_string())).unwrap())
         .await
         .unwrap()
 }
 
+// Sends one request without a body, see send_with_body
+pub async fn send(
+    router: Router,
+    method: &str,
+    uri: &str,
+    headers: &[(&str, &str)],
+) -> Response<Body> {
+    send_with_body(router, method, uri, headers, "").await
+}
+
+// Reads the whole response body as text
+pub async fn body_text(response: Response<Body>) -> String {
+    let bytes = response.into_body().collect().await.unwrap().to_bytes();
+
+    String::from_utf8(bytes.to_vec()).unwrap()
+}
+
 // Reads the whole response body as json
 pub async fn body_json(response: Response<Body>) -> Value {
-    let bytes = response.into_body().collect().await.unwrap().to_bytes();
-    serde_json::from_slice(&bytes).unwrap()
+    serde_json::from_str(&body_text(response).await).unwrap()
 }

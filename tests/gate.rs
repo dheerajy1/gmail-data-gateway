@@ -23,7 +23,7 @@ fn location(response: &Response<Body>) -> Option<&str> {
 // A browser without the cookie is redirected to /login
 #[tokio::test]
 async fn browser_without_cookie_is_redirected_to_login() {
-    let response = get("/api/v1/health", &[("accept", "text/html")]).await;
+    let response = get("/healthz/app", &[("accept", "text/html")]).await;
 
     assert_eq!(response.status(), StatusCode::FOUND);
     assert_eq!(location(&response), Some("/login"));
@@ -33,7 +33,7 @@ async fn browser_without_cookie_is_redirected_to_login() {
 #[tokio::test]
 async fn browser_with_cookie_reaches_the_route() {
     let response = get(
-        "/api/v1/health",
+        "/healthz/app",
         &[("accept", "text/html"), ("cookie", "auth=ok")],
     )
     .await;
@@ -45,7 +45,7 @@ async fn browser_with_cookie_reaches_the_route() {
 #[tokio::test]
 async fn browser_with_wrong_cookie_is_redirected_to_login() {
     let response = get(
-        "/api/v1/health",
+        "/healthz/app",
         &[("accept", "text/html"), ("cookie", "auth=no")],
     )
     .await;
@@ -60,7 +60,7 @@ async fn html_request_with_client_headers_is_redirected() {
     let mut headers = vec![("accept", "text/html")];
     headers.extend(auth_headers());
 
-    let response = get("/api/v1/health", &headers).await;
+    let response = get("/healthz/app", &headers).await;
 
     assert_eq!(response.status(), StatusCode::FOUND);
     assert_eq!(location(&response), Some("/login"));
@@ -69,7 +69,7 @@ async fn html_request_with_client_headers_is_redirected() {
 // A non-html request with valid client headers passes without a cookie
 #[tokio::test]
 async fn api_request_with_client_headers_passes_without_cookie() {
-    let response = get("/api/v1/health", &auth_headers()).await;
+    let response = get("/healthz/app", &auth_headers()).await;
 
     assert_eq!(response.status(), StatusCode::OK);
 }
@@ -78,7 +78,7 @@ async fn api_request_with_client_headers_passes_without_cookie() {
 #[tokio::test]
 async fn api_request_with_wrong_secret_is_redirected() {
     let response = get(
-        "/api/v1/health",
+        "/healthz/app",
         &[("x-client-id", "test-client"), ("x-client-secret", "wrong")],
     )
     .await;
@@ -90,7 +90,7 @@ async fn api_request_with_wrong_secret_is_redirected() {
 // A non-html request without any headers is redirected
 #[tokio::test]
 async fn api_request_without_headers_is_redirected() {
-    let response = get("/api/v1/health", &[]).await;
+    let response = get("/healthz/app", &[]).await;
 
     assert_eq!(response.status(), StatusCode::FOUND);
     assert_eq!(location(&response), Some("/login"));
@@ -99,7 +99,15 @@ async fn api_request_without_headers_is_redirected() {
 // The auth cookie also lets a non-html request through
 #[tokio::test]
 async fn api_request_with_cookie_passes() {
-    let response = get("/api/v1/health", &[("cookie", "auth=ok")]).await;
+    let response = get("/healthz/app", &[("cookie", "auth=ok")]).await;
+
+    assert_eq!(response.status(), StatusCode::OK);
+}
+
+// The login page is open without a cookie
+#[tokio::test]
+async fn login_page_is_open_without_cookie() {
+    let response = get("/login", &[("accept", "text/html")]).await;
 
     assert_eq!(response.status(), StatusCode::OK);
 }

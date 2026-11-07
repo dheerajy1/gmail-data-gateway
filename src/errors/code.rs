@@ -10,6 +10,7 @@ pub enum ErrorCode {
     MethodNotSupported,
     TooManyRequests,
     InternalServerError,
+    ServiceUnavailable,
 }
 
 impl ErrorCode {
@@ -23,6 +24,7 @@ impl ErrorCode {
             Self::MethodNotSupported => "METHOD_NOT_SUPPORTED",
             Self::TooManyRequests => "TOO_MANY_REQUESTS",
             Self::InternalServerError => "INTERNAL_SERVER_ERROR",
+            Self::ServiceUnavailable => "SERVICE_UNAVAILABLE",
         }
     }
 
@@ -36,6 +38,7 @@ impl ErrorCode {
             Self::MethodNotSupported => 405,
             Self::TooManyRequests => 429,
             Self::InternalServerError => 500,
+            Self::ServiceUnavailable => 503,
         }
     }
 
@@ -64,6 +67,7 @@ impl ErrorCode {
             Self::InternalServerError => {
                 "An unexpected error occurred while processing your request."
             }
+            Self::ServiceUnavailable => "The server is not ready to handle the request.",
         }
     }
 }

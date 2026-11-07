@@ -71,6 +71,11 @@ Nothing in this file has been compiled or run. Everything marked as read was rea
 | D38 | Expired tokens return `UNAUTHORIZED` / `EXPIRED_TOKEN` (401) | `DECIDED` |
 | D39 | Constant-time comparison uses the `subtle` crate | `DECIDED` |
 | D40 | P2 crates: `jsonwebtoken`, `utoipa`, `utoipa-scalar`; `serde_json` and the `tower-http` `cors` feature | `DECIDED` |
+| D41 | Login rejects users with `isActive = 0` | `DECIDED` |
+| D42 | Portal and API login give one 401 for unknown, inactive and wrong password, and always run one bcrypt check | `DECIDED` |
+| D43 | `GET /api/v1/health` includes `db` and returns 503 while the database is down; `SERVICE_UNAVAILABLE` is the eighth error code | `DECIDED` |
+| D44 | Pages show the product name "Gmail data gateway API" | `DECIDED` |
+| D45 | P3 crates: `tiberius`, `bb8`, `bb8-tiberius`, `bcrypt`, `dioxus`, `dioxus-ssr` | `DECIDED` |
 
 ---
 
@@ -509,6 +514,39 @@ Nothing in this file has been compiled or run. Everything marked as read was rea
 - **Status:** `DECIDED` (2026-11-07), under D32 (same version lines as the references). This is the `DECISIONS.md` line that `CODING-STANDARDS.md` section 15, rule 13 asks for.
 - **Evidence (`OBSERVED`, `recordlog-api-rust/Cargo.toml`):** `jsonwebtoken` 11 with `rust_crypto`, `utoipa` 6, `utoipa-scalar` 0.4 with `axum`, `serde_json` 1 as a normal dependency, `tower-http` 0.6 with `catch-panic` and `cors`.
 - **Decision:** P2 adds exactly these. `serde_json` moves from dev-dependencies to dependencies because the `utoipa` path examples use it. `subtle` 2 comes from D39.
+- **Affects:** `Cargo.toml`.
+
+## D41: Login rejects users with `isActive = 0`
+
+- **Status:** `DECIDED` (2026-11-07).
+- **Context:** `01tportalUsers` and `02tapiUsers` both have an `isActive` bit column (`FACT`, your query result). The recordlog queries ignore it.
+- **Decision:** The portal and API user lookups add `AND isActive = 1`, so an inactive user is treated like an unknown user.
+- **Affects:** `src/db/api_users.rs`, `src/db/portal_users.rs`.
+
+## D42: One 401 for every failed login, and one bcrypt check every time
+
+- **Status:** `DECIDED` (2026-11-07).
+- **Context:** `recordlog-api-rust` returns `USER_NOT_FOUND` for an unknown API user and `INVALID_CREDENTIALS` for a wrong password, and skips bcrypt for an unknown user. `FEATURES.md` F22 says wrong user and wrong password return the same response. An unknown user answered faster than a wrong password, so the response time showed which users exist.
+- **Decision:** Portal login and API login return `UNAUTHORIZED` / `INVALID_CREDENTIALS` (401) for an unknown user, an inactive user and a wrong password. Every attempt runs one bcrypt check; a missing user is checked against a fixed cost-12 dummy hash and never matches. `USER_NOT_FOUND` is not ported. The cost 12 matches the existing hashes (`OBSERVED`: `kafka-api-gateway-rust/src/auth/password.rs`).
+- **Affects:** `src/security.rs`, `src/features/v1/auth/service.rs`, `src/pages/login.rs`, SPEC section 11.
+
+## D43: Health includes the database and returns 503 while it is down
+
+- **Status:** `DECIDED` (2026-11-07). Amends D19.
+- **Context:** The P1 response had only `data.app` and said the database part comes in P3. `recordlog-api-rust` returns `data.app` and `data.db` and answers 503 when the probe fails.
+- **Decision:** `GET /api/v1/health` returns `data.app` and `data.db` and returns 503 `SERVICE_UNAVAILABLE` / `DB_PROBE_FAILED` while `SELECT 1` fails within 5 seconds. The pages `/healthz`, `/healthz/app` and `/healthz/db` answer 200 and show the database as DOWN. `SERVICE_UNAVAILABLE` (503) is added as the eighth error code.
+- **Affects:** `src/features/v1/health/*`, `src/pages/healthz.rs`, `src/errors/code.rs`, `src/errors/catalog.rs`, SPEC sections 4.1 and 11.
+
+## D44: Product name on the pages
+
+- **Status:** `DECIDED` (2026-11-07).
+- **Decision:** The login, home, about and health pages show "Gmail data gateway API", the same name as the OpenAPI title. The login heading reads "Gateway Login". The home and about texts are written for jobs.
+- **Affects:** `src/components/*`, `src/pages/*`.
+
+## D45: P3 crates
+
+- **Status:** `DECIDED` (2026-11-07), under D32 (same version lines as the references). This is the `DECISIONS.md` line that `CODING-STANDARDS.md` section 15, rule 13 asks for.
+- **Evidence (`OBSERVED`, `recordlog-api-rust/Cargo.toml`):** `tiberius` 0.12 (`tds73`, `rustls`), `bb8` 0.9, `bb8-tiberius` 0.16 (`with-tokio`, `tds73`, `tls`), `bcrypt` 0.19, `dioxus` 0.7 (`macro`, `html`, `hooks`, `signals`), `dioxus-ssr` 0.7.
 - **Affects:** `Cargo.toml`.
 
 ---

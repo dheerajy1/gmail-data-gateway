@@ -7,6 +7,8 @@ use axum::Router;
 pub fn router() -> Router {
     Router::new().nest(
         "/api/v1",
-        Router::new().nest("/health", health::handler::router()),
+        Router::new()
+            .nest("/auth", auth::handler::router())
+            .nest("/health", health::handler::router()),
     )
 }

@@ -44,7 +44,7 @@ fn has_valid_client_headers(headers: &HeaderMap) -> bool {
 }
 
 // True when the request carries the logged-in cookie
-fn has_auth_cookie(headers: &HeaderMap) -> bool {
+pub fn has_auth_cookie(headers: &HeaderMap) -> bool {
     headers
         .get_all(header::COOKIE)
         .iter()

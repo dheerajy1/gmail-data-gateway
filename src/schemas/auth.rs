@@ -1,3 +1,4 @@
+use serde::Deserialize;
 use validator::Validate;
 
 // Header that carries the client id
@@ -34,4 +35,15 @@ impl NoAuthHeaders {
             client_secret: client_secret.trim().to_string(),
         }
     }
+}
+
+// Form fields posted by the portal login page
+#[derive(Deserialize, Validate)]
+pub struct LoginForm {
+    // Portal user name
+    pub username: String,
+
+    // Portal password, same minimum length as Elysia
+    #[validate(length(min = 6, message = "Password must be at least 6 characters."))]
+    pub password: String,
 }

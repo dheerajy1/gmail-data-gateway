@@ -14,7 +14,7 @@ Last updated: 2026-11-07
 - **Commit** happens only after the phase delivered and your verify passed. Commit text follows the format in `BUILD.md`.
 - **References** are re-read at the start of each phase. A pattern is copied only after reading the reference file again.
 - **Decisions** made during a phase are written to `DECISIONS.md` in the same phase.
-- **Status:** P1 is `VERIFIED` (2026-11-07: fmt, check, clippy and 16 tests pass on your machine, and `GET /api/v1/health` works on the Vercel preview). P2 is `VERIFIED` (2026-11-07: fmt, check, clippy and 64 tests pass on your machine; `cargo build-prod` and `cargo start` work; `GET /api/v1/health` answers through the dev tunnel). P3 to P11 are `NOT STARTED`.
+- **Status:** P1 is `VERIFIED` (2026-11-07: fmt, check, clippy and 16 tests pass on your machine, and `GET /api/v1/health` works on the Vercel preview). P2 is `VERIFIED` (2026-11-07: fmt, check, clippy and 64 tests pass on your machine; `cargo build-prod` and `cargo start` work; `GET /api/v1/health` answers through the dev tunnel). P3 is `VERIFIED` (2026-11-07: fmt, check, clippy and 90 tests pass on your machine; `cargo build-prod` and `cargo start` work; docs login sets the cookie, API login returns a token, and `GET /api/v1/health` reports the database UP against the real Azure database). P4 to P11 are `NOT STARTED`.
 
 ## Phase map
 
@@ -77,6 +77,8 @@ Dependencies: P2 needs P1. P3 needs P2. P4 needs P1. P5 needs P3. P6 needs P4 an
   - API login returns a JWT that the F06 extractor accepts.
   - `/healthz/db` reports success against a real Azure database.
 - **Manual checks (yours):** log in against the real database (the only place user rows exist).
+- **Scope notes (2026-11-07):** P3 also adds the per-route error examples (`src/openapi/errors.rs`, moved here from P2), `GET /home`, the `isActive = 1` filter (D41), one 401 and one bcrypt check for every failed login (D42), `data.db` and the 503 in `GET /api/v1/health` (D43), the page name (D44) and the crates (D45). The service database pool and its login are not added yet; they come with the subscriber (F08).
+- **Build note:** the new pages use new Tailwind classes, so `cargo build-prod` rewrites `public/global.css`; commit that file with the phase (D1: Vercel does not compile Tailwind).
 - **Commit scope suggestion:** `feat(auth)`.
 
 ## P4: Kafka gateway client

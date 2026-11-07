@@ -76,9 +76,25 @@
 │   └── logo.png*
 ├── src/
 │   ├── app.rs
+│   ├── components/
+│   │   ├── about.rs
+│   │   ├── health_parts.rs
+│   │   ├── healthz.rs
+│   │   ├── healthz_app.rs
+│   │   ├── healthz_db.rs
+│   │   ├── home.rs
+│   │   ├── icons.rs
+│   │   ├── layout.rs
+│   │   ├── login.rs
+│   │   └── mod.rs
 │   ├── config/
 │   │   ├── env.rs
 │   │   └── mod.rs
+│   ├── db/
+│   │   ├── api_users.rs
+│   │   ├── azure.rs
+│   │   ├── mod.rs
+│   │   └── portal_users.rs
 │   ├── errors/
 │   │   ├── api_error.rs
 │   │   ├── catalog.rs
@@ -89,31 +105,62 @@
 │   ├── features/
 │   │   ├── mod.rs
 │   │   └── v1/
+│   │       ├── auth/
+│   │       │   ├── handler.rs
+│   │       │   ├── jwt.rs
+│   │       │   ├── mod.rs
+│   │       │   ├── model.rs
+│   │       │   └── service.rs
 │   │       ├── health/
 │   │       │   ├── handler.rs
 │   │       │   ├── mod.rs
 │   │       │   ├── model.rs
 │   │       │   └── service.rs
 │   │       └── mod.rs
+│   ├── headers.rs
 │   ├── lib.rs
 │   ├── logging.rs
 │   ├── main.rs
+│   ├── middleware/
+│   │   ├── auth.rs
+│   │   ├── cors.rs
+│   │   ├── mod.rs
+│   │   ├── no_auth.rs
+│   │   └── server_gate.rs
+│   ├── openapi/
+│   │   ├── errors.rs
+│   │   └── mod.rs
+│   ├── pages/
+│   │   ├── about.rs
+│   │   ├── healthz.rs
+│   │   ├── home.rs
+│   │   ├── login.rs
+│   │   ├── mod.rs
+│   │   └── render.rs
 │   ├── schemas/
+│   │   ├── auth.rs
 │   │   ├── env.rs
 │   │   ├── mod.rs
 │   │   └── response.rs
+│   ├── security.rs
 │   └── tailwind.css
 ├── structure.txt
 ├── tests/
+│   ├── auth.rs
+│   ├── auth_extractor.rs
 │   ├── common/
 │   │   └── mod.rs
+│   ├── cors.rs
 │   ├── env.rs
 │   ├── errors.rs
-│   └── health.rs
+│   ├── gate.rs
+│   ├── health.rs
+│   ├── login.rs
+│   └── openapi.rs
 ├── vercel.json*
 └── xtask/
     ├── Cargo.toml
     └── src/
         └── main.rs
 
-30 directories, 85 files
+36 directories, 126 files

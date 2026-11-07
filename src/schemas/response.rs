@@ -34,7 +34,7 @@ impl<T: Serialize> SuccessResponse<T> {
 }
 
 // Error envelope shared by every API error
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ErrorResponse {
     pub success: bool,

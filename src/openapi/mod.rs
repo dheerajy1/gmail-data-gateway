@@ -1,17 +1,26 @@
+pub mod errors;
+
 use axum::{Json, Router, routing::get};
 use utoipa::OpenApi;
 use utoipa_scalar::{Scalar, Servable};
 
-use crate::features::v1::health::handler as health;
+use self::errors::ErrorExamples;
+
+use crate::{
+    features::v1::{auth::handler as auth, health::handler as health},
+    schemas::response::ErrorResponse,
+};
 
 // Title shown on the docs page and in the spec (SPEC section 4.1)
 const TITLE: &str = "Gmail data gateway API";
 
-// The OpenAPI document, every new route is added to paths when it is built
+// The OpenAPI document, routes are listed in paths and error examples are added by ErrorExamples
 #[derive(OpenApi)]
 #[openapi(
     info(title = "Gmail data gateway API", version = "v1"),
-    paths(health::health)
+    paths(auth::login, health::health),
+    components(schemas(ErrorResponse)),
+    modifiers(&ErrorExamples)
 )]
 pub struct ApiDoc;
 

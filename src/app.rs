@@ -5,7 +5,7 @@ use crate::{
     errors::{fallback, panic::handle_panic},
     features::v1,
     middleware::{cors::cors_layer, server_gate::server_gate},
-    openapi,
+    openapi, pages,
 };
 
 // Serves the precompiled Tailwind stylesheet embedded in the binary
@@ -34,9 +34,10 @@ async fn favicon() -> impl IntoResponse {
 
 // Full application router, shared by main and the tests
 pub fn router() -> Router {
-    // API and docs routes behind the gate, route_layer only wraps matched routes so 404 stays ungated
+    // API, page and docs routes behind the gate (the gate itself lets /login through), route_layer only wraps matched routes so 404 stays ungated
     let protected = Router::new()
         .merge(v1::router())
+        .merge(pages::router())
         .merge(openapi::router())
         .route_layer(middleware::from_fn(server_gate));
 

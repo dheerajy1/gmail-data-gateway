@@ -80,7 +80,7 @@ Jobs-specific additions over recordlog: `clients/gmail.rs`, `clients/google_oaut
 | `GET /login`, `POST /login` | Public | Docs login page. On success sets cookie `auth=ok` (`FACT`). |
 | `GET /healthz`, `/healthz/app`, `/healthz/db` | Gate | HTML health pages (`FACT`). |
 | `GET /openapi` | Gate | API documentation. The old title is "Gmail data gateway API", version `v1` (`FACT`). |
-| `GET /api/v1/health` | Gate | JSON health (`FACT`: old `health.router`; exact response `UNKNOWN`, copy the recordlog Rust shape). |
+| `GET /api/v1/health` | Gate | JSON health with `data.app` and `data.db`; returns 503 `SERVICE_UNAVAILABLE` while the database is down (`DECIDED`, D43; old response `UNKNOWN`). |
 | `POST /api/v1/auth/login` | Client headers | API login, returns a JWT (`FACT`). |
 | `POST /api/v1/admin/extractMails` | Client headers and JWT | Gmail extraction and publish (section 5). |
 | `GET /global.css`, `/logo.png`, `/favicon.ico` | Public | Embedded assets (`FACT` in recordlog Rust). |
@@ -357,16 +357,17 @@ The "Used by" column is `PROPOSED`, derived from where the old code reads each v
 
 ## 11. Error catalog
 
-The Rust catalog follows `recordlog-api-rust/src/errors/catalog.rs` (`FACT`: entries of code, message and error text). Jobs needs these codes in addition to the common ones (`FACT`, from the old catalog):
+The Rust catalog follows `recordlog-api-rust/src/errors/catalog.rs` (`FACT`: entries of code, message and error text). Jobs needs these codes in addition to the common ones (`FACT`, from the old catalog; `USER_NOT_FOUND` is not used, D42):
 
 | Code (HTTP) | Entries used by jobs |
 | --- | --- |
-| `UNAUTHORIZED` (401) | `MISSING_AUTH_HEADERS`, `MISSING_AUTHORIZATION_TOKEN`, `INVALID_TOKEN`, `EXPIRED_TOKEN`, `MISSING_SUB_OR_ROLE`, `USER_NOT_FOUND`, `INVALID_CREDENTIALS`, `GMAIL_SESSION_EXPIRED`, `NO_ACTIVE_CREDENTIALS` |
+| `UNAUTHORIZED` (401) | `MISSING_AUTH_HEADERS`, `MISSING_AUTHORIZATION_TOKEN`, `INVALID_TOKEN`, `EXPIRED_TOKEN`, `MISSING_SUB_OR_ROLE`, `INVALID_CREDENTIALS`, `GMAIL_SESSION_EXPIRED`, `NO_ACTIVE_CREDENTIALS` |
 | `BAD_REQUEST` (400) | `INVALID_HEADER_VALUES`, `INVALID_INPUT`, validation messages |
-| `FORBIDDEN` (403) | `GMAIL_ACCESS_DENIED` |
+| `FORBIDDEN` (403) | `ACCESS_DENIED` (portal login posted by a non-browser), `GMAIL_ACCESS_DENIED` |
 | `NOT_FOUND` (404) | `NO_EMAIL_DATA`, `CLIENT_ID_NOT_FOUND`, `APPS_TABLE_MISSING`, `TOKENS_TABLE_MISSING` |
 | `TOO_MANY_REQUESTS` (429) | `GMAIL_RATE_LIMIT` |
-| `INTERNAL_SERVER_ERROR` (500) | `SERVER_ERROR`, `DATABASE_ERROR`, `EXTRACT_FAILED`, `KAFKA_GATEWAY_FAILED` (`PROPOSED`) |
+| `INTERNAL_SERVER_ERROR` (500) | `SERVER_ERROR`, `DATABASE_ERROR`, `TOKEN_SIGNING_FAILED`, `EXTRACT_FAILED`, `KAFKA_GATEWAY_FAILED` (`PROPOSED`) |
+| `SERVICE_UNAVAILABLE` (503) | `DB_PROBE_FAILED` (`DECIDED`, D43) |
 
 The old catalog has many more entries (412, 413, 415, 422, 428, 499, 501, 502, 503, 504). Whether to port all of them or only the used ones is `UNKNOWN`; `PLAN.md` proposes porting only the entries the code uses (`PROPOSED`).
 

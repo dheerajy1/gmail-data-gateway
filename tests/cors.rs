@@ -20,7 +20,7 @@ async fn get_with_origin(origin: &str) -> Response<Body> {
     let mut headers = vec![("origin", origin)];
     headers.extend(auth_headers());
 
-    send(router(), "GET", "/api/v1/health", &headers).await
+    send(router(), "GET", "/healthz/app", &headers).await
 }
 
 // Sends a preflight request with the given Origin
@@ -28,7 +28,7 @@ async fn preflight(origin: &str) -> Response<Body> {
     send(
         router(),
         "OPTIONS",
-        "/api/v1/health",
+        "/healthz/app",
         &[
             ("origin", origin),
             ("access-control-request-method", "POST"),
@@ -85,7 +85,7 @@ async fn unknown_origin_is_not_allowed() {
 // A request without an Origin header gets no CORS headers but still works
 #[tokio::test]
 async fn request_without_origin_is_untouched() {
-    let response = send(router(), "GET", "/api/v1/health", &auth_headers()).await;
+    let response = send(router(), "GET", "/healthz/app", &auth_headers()).await;
 
     assert_eq!(response.status(), StatusCode::OK);
     assert!(

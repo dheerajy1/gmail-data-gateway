@@ -28,6 +28,12 @@ subtle = "2"
 serde_json = "1"
 utoipa = "6"
 utoipa-scalar = { version = "0.4", features = ["axum"] }
+tiberius = { version = "0.12", default-features = false, features = ["tds73", "rustls"] }
+bb8 = "0.9"
+bb8-tiberius = { version = "0.16", default-features = false, features = ["with-tokio", "tds73", "tls"] }
+bcrypt = "0.19"
+dioxus = { version = "0.7", default-features = false, features = ["macro", "html", "hooks", "signals"] }
+dioxus-ssr = "0.7"
 
 [dev-dependencies]
 tower = { version = "0.5", features = ["util"] }

@@ -4,8 +4,7 @@ use axum::{
     body::Body,
     http::{Response, StatusCode},
 };
-use common::{auth_headers, body_json, send};
-use http_body_util::BodyExt;
+use common::{auth_headers, body_json, body_text, send};
 use jobs_api_gateway::app::router;
 use serde_json::Value;
 
@@ -42,6 +41,48 @@ async fn spec_lists_the_health_route() {
     assert_eq!(operation["operationId"], "health");
 }
 
+// The spec lists the API login route with its operation id
+#[tokio::test]
+async fn spec_lists_the_login_route() {
+    let spec = spec().await;
+    let operation = &spec["paths"]["/api/v1/auth/login"]["post"];
+
+    assert!(operation.is_object());
+    assert_eq!(operation["operationId"], "auth_login");
+}
+
+// The login operation documents its error responses by status
+#[tokio::test]
+async fn login_documents_error_responses() {
+    let spec = spec().await;
+    let responses = &spec["paths"]["/api/v1/auth/login"]["post"]["responses"];
+
+    for status in ["200", "400", "401", "500"] {
+        assert!(responses[status].is_object(), "missing status {status}");
+    }
+
+    let examples = &responses["401"]["content"]["application/json"]["examples"];
+
+    assert!(examples["Invalid credentials"].is_object());
+}
+
+// The health operation documents the 503 response
+#[tokio::test]
+async fn health_documents_the_503_response() {
+    let spec = spec().await;
+    let responses = &spec["paths"]["/api/v1/health"]["get"]["responses"];
+
+    assert!(responses["503"].is_object());
+}
+
+// The error envelope is listed as a schema
+#[tokio::test]
+async fn spec_lists_the_error_schema() {
+    let spec = spec().await;
+
+    assert!(spec["components"]["schemas"]["ErrorResponse"].is_object());
+}
+
 // The spec goes through the gate and redirects without credentials
 #[tokio::test]
 async fn spec_is_gated() {
@@ -57,8 +98,7 @@ async fn scalar_page_is_served() {
 
     assert_eq!(response.status(), StatusCode::OK);
 
-    let bytes = response.into_body().collect().await.unwrap().to_bytes();
-    let html = String::from_utf8(bytes.to_vec()).unwrap();
+    let html = body_text(response).await;
 
     assert!(html.contains("Gmail data gateway API"));
 }
