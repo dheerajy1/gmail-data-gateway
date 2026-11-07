@@ -1,4 +1,5 @@
 pub mod app;
+pub mod clients;
 pub mod components;
 pub mod config;
 pub mod db;

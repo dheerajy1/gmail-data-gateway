@@ -130,6 +130,12 @@ pub mod internal_server_error {
         "A database error occurred while processing the request.",
         "Database error",
     );
+
+    pub const KAFKA_GATEWAY_FAILED: CatalogEntry = CatalogEntry::new(
+        ErrorCode::InternalServerError,
+        "Failed to communicate with the Kafka gateway service.",
+        "Kafka gateway communication error",
+    );
 }
 
 // 503 entries
@@ -148,7 +154,7 @@ mod tests {
     use super::*;
 
     // Every entry in the catalogue with the http status it must map to
-    const ENTRIES: [(CatalogEntry, u16); 15] = [
+    const ENTRIES: [(CatalogEntry, u16); 16] = [
         (unauthorized::MISSING_AUTH_HEADERS, 401),
         (unauthorized::MISSING_AUTHORIZATION_TOKEN, 401),
         (unauthorized::EXPIRED_TOKEN, 401),
@@ -163,6 +169,7 @@ mod tests {
         (internal_server_error::SERVER_ERROR, 500),
         (internal_server_error::TOKEN_SIGNING_FAILED, 500),
         (internal_server_error::DATABASE_ERROR, 500),
+        (internal_server_error::KAFKA_GATEWAY_FAILED, 500),
         (service_unavailable::DB_PROBE_FAILED, 503),
     ];
 

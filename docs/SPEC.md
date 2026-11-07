@@ -247,9 +247,9 @@ Status event (topic `JOBS_STATUS_TOPIC`):
 
 Body: `{ "topic", "correlationId", "value" }`. The gateway accepts only these three fields and uses `correlationId` as the Kafka message key (`FACT`, kafka gateway code).
 
-Success reply: `202` with `success`, `statusCode: 202`, a `message` and `data`. I read the gateway code before your rename, when the field was `httpCode`; your rename in `kafka-api-gateway-rust` (D29) is reported by you and not re-read by me (`UNVERIFIED`).
+Success reply: `202` with `success`, `statusCode: 202`, a `message` and `data` of `{ topic, correlationId }` (`OBSERVED`, D46: `kafka-api-gateway-rust` `SuccessResponse::accepted` and `HttpPublishData`; the `statusCode` rename of D29 is in that code).
 
-Gateway reply field (`DECIDED`, D21): the jobs client reads `statusCode` and requires it to equal 202, as `recordlog-api-rust` does. Your rename in `kafka-api-gateway-rust` (D29) makes the real gateway send that field. It is not tested yet, so a live publish check waits for P11. The `data` object shape in the gateway reply is `UNVERIFIED` and must be checked in the gateway code during the client phase.
+Gateway reply field (`DECIDED`, D21): the jobs client reads `statusCode` and requires it to equal 202, as `recordlog-api-rust` does. Your rename in `kafka-api-gateway-rust` (D29) makes the real gateway send that field. The client is tested against a fake gateway in P4; a live publish check waits for P11.
 
 Failure handling: any non-2xx status, a non-JSON body, or a reply that fails validation is a publish failure (section 5.6).
 

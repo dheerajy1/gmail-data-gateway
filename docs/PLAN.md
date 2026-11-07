@@ -14,7 +14,7 @@ Last updated: 2026-11-07
 - **Commit** happens only after the phase delivered and your verify passed. Commit text follows the format in `BUILD.md`.
 - **References** are re-read at the start of each phase. A pattern is copied only after reading the reference file again.
 - **Decisions** made during a phase are written to `DECISIONS.md` in the same phase.
-- **Status:** P1 is `VERIFIED` (2026-11-07: fmt, check, clippy and 16 tests pass on your machine, and `GET /api/v1/health` works on the Vercel preview). P2 is `VERIFIED` (2026-11-07: fmt, check, clippy and 64 tests pass on your machine; `cargo build-prod` and `cargo start` work; `GET /api/v1/health` answers through the dev tunnel). P3 is `VERIFIED` (2026-11-07: fmt, check, clippy and 90 tests pass on your machine; `cargo build-prod` and `cargo start` work; docs login sets the cookie, API login returns a token, and `GET /api/v1/health` reports the database UP against the real Azure database). P4 to P11 are `NOT STARTED`.
+- **Status:** P1 is `VERIFIED` (2026-11-07: fmt, check, clippy and 16 tests pass on your machine, and `GET /api/v1/health` works on the Vercel preview). P2 is `VERIFIED` (2026-11-07: fmt, check, clippy and 64 tests pass on your machine; `cargo build-prod` and `cargo start` work; `GET /api/v1/health` answers through the dev tunnel). P3 is `VERIFIED` (2026-11-07: fmt, check, clippy and 90 tests pass on your machine; `cargo build-prod` and `cargo start` work; docs login sets the cookie, API login returns a token, and `GET /api/v1/health` reports the database UP against the real Azure database). P4 is `VERIFIED` (2026-11-07: fmt, check, clippy and 100 tests pass on your machine, including the fake gateway tests; the live check waits for P11). P5 to P11 are `NOT STARTED`.
 
 ## Phase map
 
@@ -92,6 +92,7 @@ Dependencies: P2 needs P1. P3 needs P2. P4 needs P1. P5 needs P3. P6 needs P4 an
   - Tests with the fake gateway cover success, non-2xx, non-JSON and a wrong `statusCode`.
 - **Live checks:** the gateway now sends `statusCode` (your rename, D29, not tested). Live checks wait for P11.
 - **Unknown to settle first:** the shape of the `data` object in the gateway reply.
+- **Scope notes (2026-11-07):** The `data` shape is settled from the gateway code (D46). No route calls the client yet; the first caller is the extract flow.
 - **Commit scope suggestion:** `feat(gateway)`.
 
 ## P5: `extractMails`: request and Gmail credentials

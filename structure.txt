@@ -76,6 +76,9 @@
 │   └── logo.png*
 ├── src/
 │   ├── app.rs
+│   ├── clients/
+│   │   ├── kafka_gateway.rs
+│   │   └── mod.rs
 │   ├── components/
 │   │   ├── about.rs
 │   │   ├── health_parts.rs
@@ -154,6 +157,7 @@
 │   ├── env.rs
 │   ├── errors.rs
 │   ├── gate.rs
+│   ├── gateway.rs
 │   ├── health.rs
 │   ├── login.rs
 │   └── openapi.rs
@@ -163,4 +167,4 @@
     └── src/
         └── main.rs
 
-36 directories, 126 files
+37 directories, 129 files

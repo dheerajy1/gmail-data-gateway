@@ -76,6 +76,7 @@ Nothing in this file has been compiled or run. Everything marked as read was rea
 | D43 | `GET /api/v1/health` includes `db` and returns 503 while the database is down; `SERVICE_UNAVAILABLE` is the eighth error code | `DECIDED` |
 | D44 | Pages show the product name "Gmail data gateway API" | `DECIDED` |
 | D45 | P3 crates: `tiberius`, `bb8`, `bb8-tiberius`, `bcrypt`, `dioxus`, `dioxus-ssr` | `DECIDED` |
+| D46 | P4: `reqwest` crate, a gateway client that takes its target as an argument, and the gateway reply `data` shape | `DECIDED` |
 
 ---
 
@@ -548,6 +549,13 @@ Nothing in this file has been compiled or run. Everything marked as read was rea
 - **Status:** `DECIDED` (2026-11-07), under D32 (same version lines as the references). This is the `DECISIONS.md` line that `CODING-STANDARDS.md` section 15, rule 13 asks for.
 - **Evidence (`OBSERVED`, `recordlog-api-rust/Cargo.toml`):** `tiberius` 0.12 (`tds73`, `rustls`), `bb8` 0.9, `bb8-tiberius` 0.16 (`with-tokio`, `tds73`, `tls`), `bcrypt` 0.19, `dioxus` 0.7 (`macro`, `html`, `hooks`, `signals`), `dioxus-ssr` 0.7.
 - **Affects:** `Cargo.toml`.
+
+## D46: P4 gateway client
+
+- **Status:** `DECIDED` (2026-11-07), under D32 for the crate.
+- **Evidence (`OBSERVED`):** `recordlog-api-rust/Cargo.toml` has `reqwest` 0.12 with `json` and `rustls-tls`. `kafka-api-gateway-rust` returns `statusCode` 202 and `data` of `{ topic, correlationId }` (`SuccessResponse::accepted`, `HttpPublishData`), so the D29 rename is in that code and the `data` shape is settled.
+- **Decision:** P4 adds `reqwest` as in the reference. `post_to_gateway` reads the env and calls `post_to_gateway_at`, which takes the gateway url and the four credentials as a `GatewayTarget`. Tests start a fake gateway on a free local port and call `post_to_gateway_at`, so they need no env variables and no change to the shared test env. `KAFKA_GATEWAY_FAILED` (500) is added to the error catalog.
+- **Affects:** `Cargo.toml`, `src/clients/kafka_gateway.rs`, `src/errors/catalog.rs`, `tests/gateway.rs`, SPEC section 7.
 
 ---
 
