@@ -14,7 +14,7 @@ Last updated: 2026-11-07
 - **Commit** happens only after the phase delivered and your verify passed. Commit text follows the format in `BUILD.md`.
 - **References** are re-read at the start of each phase. A pattern is copied only after reading the reference file again.
 - **Decisions** made during a phase are written to `DECISIONS.md` in the same phase.
-- **Status:** P1 is `DELIVERED, NOT VERIFIED` (written 2026-11-07, never compiled: Rust 1.85+ is not installable in the chat). P2 to P11 are `NOT STARTED`.
+- **Status:** P1 is `VERIFIED` (2026-11-07: fmt, check, clippy and 16 tests pass on your machine, and `GET /api/v1/health` works on the Vercel preview). P2 is `VERIFIED` (2026-11-07: fmt, check, clippy and 64 tests pass on your machine; `cargo build-prod` and `cargo start` work; `GET /api/v1/health` answers through the dev tunnel). P3 to P11 are `NOT STARTED`.
 
 ## Phase map
 
@@ -63,6 +63,7 @@ Dependencies: P2 needs P1. P3 needs P2. P4 needs P1. P5 needs P3. P6 needs P4 an
   - The gate follows the four-step order in `SPEC.md` section 4.2.
   - CORS allows only the origins in `SPEC.md` section 4.4.
   - `/openapi` renders and lists the routes that exist.
+- **Scope notes (2026-11-07):** P2 also adds JWT verification (D36), `wants_html` (D37), `EXPIRED_TOKEN` (D38), constant-time comparison (D35, D39). `src/openapi/errors.rs` of the reference moves to P3, because it documents errors per route and P2 has no route with documented errors.
 - **Commit scope suggestion:** `feat(middleware)`.
 
 ## P3: Azure access, login and health database check

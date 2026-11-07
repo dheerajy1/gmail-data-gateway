@@ -1,7 +1,8 @@
 use serde::Serialize;
+use utoipa::ToSchema;
 
 // Success envelope shared by every API endpoint
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct SuccessResponse<T: Serialize> {
     pub success: bool,

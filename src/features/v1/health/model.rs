@@ -1,7 +1,8 @@
 use serde::Serialize;
+use utoipa::ToSchema;
 
 // Application health data returned by GET /api/v1/health
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AppHealthData {
     pub status: String,
@@ -11,7 +12,7 @@ pub struct AppHealthData {
 }
 
 // Health data of the whole service, the database part is added in P3
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct HealthData {
     pub app: AppHealthData,

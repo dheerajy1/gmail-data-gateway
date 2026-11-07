@@ -111,7 +111,8 @@ Outcomes in the old code:
 | `x-client-id` or `x-client-secret` missing | `UNAUTHORIZED` / `MISSING_AUTH_HEADERS` (401) |
 | Headers present but invalid or wrong | `BAD_REQUEST` / `INVALID_HEADER_VALUES` (400) |
 | `authorization` not a Bearer value | `UNAUTHORIZED` / `MISSING_AUTHORIZATION_TOKEN` (401) |
-| JWT does not verify | `UNAUTHORIZED` / `INVALID_TOKEN` (401) |
+| JWT is expired (`DECIDED`, D38) | `UNAUTHORIZED` / `EXPIRED_TOKEN` (401) |
+| JWT does not verify for any other reason | `UNAUTHORIZED` / `INVALID_TOKEN` (401) |
 | JWT lacks `sub` or `role` | `UNAUTHORIZED` / `MISSING_SUB_OR_ROLE` (401) |
 
 JWT: HS256 is `UNVERIFIED` (the old plugin default); issuer `jobs-api-gateway`, expiry 1 day, claims `sub`, `role` (`admin` or `user`), `iat`, `exp`, optional `iss`. Secret from `JWT_SECRET`. Passwords: bcrypt only (`DECIDED`, D7). Users come from `01tportalUsers` (docs login) and `02tapiUsers` (API login) in Azure (`DECIDED`, D7).
@@ -360,7 +361,7 @@ The Rust catalog follows `recordlog-api-rust/src/errors/catalog.rs` (`FACT`: ent
 
 | Code (HTTP) | Entries used by jobs |
 | --- | --- |
-| `UNAUTHORIZED` (401) | `MISSING_AUTH_HEADERS`, `MISSING_AUTHORIZATION_TOKEN`, `INVALID_TOKEN`, `MISSING_SUB_OR_ROLE`, `USER_NOT_FOUND`, `INVALID_CREDENTIALS`, `GMAIL_SESSION_EXPIRED`, `NO_ACTIVE_CREDENTIALS` |
+| `UNAUTHORIZED` (401) | `MISSING_AUTH_HEADERS`, `MISSING_AUTHORIZATION_TOKEN`, `INVALID_TOKEN`, `EXPIRED_TOKEN`, `MISSING_SUB_OR_ROLE`, `USER_NOT_FOUND`, `INVALID_CREDENTIALS`, `GMAIL_SESSION_EXPIRED`, `NO_ACTIVE_CREDENTIALS` |
 | `BAD_REQUEST` (400) | `INVALID_HEADER_VALUES`, `INVALID_INPUT`, validation messages |
 | `FORBIDDEN` (403) | `GMAIL_ACCESS_DENIED` |
 | `NOT_FOUND` (404) | `NO_EMAIL_DATA`, `CLIENT_ID_NOT_FOUND`, `APPS_TABLE_MISSING`, `TOKENS_TABLE_MISSING` |

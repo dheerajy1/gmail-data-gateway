@@ -10,7 +10,7 @@ Last updated: 2026-11-07
 | --- | --- |
 | `FACT` | Observed in `recordlog-api-rust` or `kafka-api-gateway-rust` (files read, not run). |
 | `DECIDED` | You decided it. The D-number or your standing rule is named. |
-| `PROPOSED` | My proposal. Not approved, except the 14 numbered rules in section 15, which you approved on 2026-11-06 (D28). |
+| `PROPOSED` | My proposal. Not approved, except the 14 numbered rules in section 15 (approved 2026-11-06, D28) and the rules in section 16 (approved 2026-11-07). |
 
 A rule tagged `FACT` is the default pattern: copy it unless a `DECIDED` rule says otherwise. Nothing here has been compiled.
 
@@ -171,7 +171,7 @@ Rules:
 - Secrets live only in env files and in Azure; never in source, docs, tests, logs or chat. `.env.*` is ignored by git except `.env.example` (`FACT`).
 - The delivered tarball contains real env files and must not be shared (`DECIDED`, D16).
 - The stored Google refresh token also grants Drive access (`DECIDED`, D14), so handle it as high sensitivity.
-- Compare client secrets and tokens without leaking length or content in errors. Whether to use a constant-time comparison is `UNKNOWN` and `PROPOSED` for the gate.
+- Compare client secrets and tokens without leaking length or content in errors. Use a constant-time comparison for secrets and tokens (`DECIDED`, D35).
 
 ## 14. Definition of done for a change
 
@@ -203,7 +203,7 @@ You approved these 14 rules on 2026-11-06 (D28). They are tagged `PROPOSED` in t
 
 ## 16. Rules learned from verify runs
 
-Added 2026-11-07 after the first P1 verify. They are `PROPOSED` until you approve them. Each one comes from a real result.
+Added 2026-11-07 after the first P1 verify. You approved them on 2026-11-07. Each one comes from a real result.
 
 **Evidence (`OBSERVED`, your output):** Your toolchain is Rust and clippy 1.98.0. `cargo check` passed on the P1 code. `cargo clippy --workspace --all-targets --locked -- -D warnings` failed with `clippy::redundant_guards` in `src/config/env.rs`: a match arm `Some(field) if field == "google_appid"` must be the pattern `Some("google_appid")`. Claude cannot compile in chat (Rust 1.85+ is not installable there), so Claude's code is never clippy-checked before it reaches you.
 

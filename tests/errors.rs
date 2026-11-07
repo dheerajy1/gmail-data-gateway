@@ -1,8 +1,8 @@
 mod common;
 
 use axum::{Router, body::Body, http::Request, http::StatusCode, routing::get};
-use common::{body_json, send};
-use jobs_api_gateway::errors::panic::handle_panic;
+use common::{auth_headers, body_json, send};
+use jobs_api_gateway::{app::router, errors::panic::handle_panic};
 use tower::ServiceExt;
 use tower_http::catch_panic::CatchPanicLayer;
 
@@ -14,7 +14,7 @@ async fn boom() -> String {
 // An unknown path returns the global 404 error shape
 #[tokio::test]
 async fn unknown_path_returns_404_error_shape() {
-    let response = send("GET", "/api/v1/dummy").await;
+    let response = send(router(), "GET", "/api/v1/dummy", &auth_headers()).await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
 
@@ -30,7 +30,7 @@ async fn unknown_path_returns_404_error_shape() {
 // A known path with the wrong method returns the global 405 error shape
 #[tokio::test]
 async fn wrong_method_returns_405_error_shape() {
-    let response = send("POST", "/api/v1/health").await;
+    let response = send(router(), "POST", "/api/v1/health", &auth_headers()).await;
 
     assert_eq!(response.status(), StatusCode::METHOD_NOT_ALLOWED);
 

@@ -61,10 +61,16 @@ Nothing in this file has been compiled or run. Everything marked as read was rea
 | D28 | The 14 coding rules in `CODING-STANDARDS.md` section 15 are approved | `DECIDED` |
 | D29 | `statusCode` rename is done in all five related repos | `DECIDED` (done by you, untested) |
 | D30 | Allowed `APP_ENV` values are `development`, `preview` and `production` | `DECIDED` (preview added by you) |
-| D31 | Log format and filter follow `kafka-api-gateway-rust` | `PROPOSED` |
-| D32 | P1 crate set follows the references; `tower-http` stays on 0.6 | `PROPOSED` |
-| D33 | P1 scope trims: layout, validation 400, `db` health part and `Cargo.lock` | `PROPOSED` |
-| D34 | `cargo preview` loads `.env.preview` | `PROPOSED` |
+| D31 | Log format and filter follow `kafka-api-gateway-rust` | `DECIDED` |
+| D32 | P1 crate set follows the references; `tower-http` stays on 0.6 | `DECIDED` |
+| D33 | P1 scope trims: layout, validation 400, `db` health part and `Cargo.lock` | `DECIDED` |
+| D34 | `cargo preview` loads `.env.preview` | `DECIDED` |
+| D35 | Client secrets and tokens are compared in constant time | `DECIDED` |
+| D36 | P2 includes JWT verification; token signing stays in P3 | `DECIDED` |
+| D37 | `wants_html` is added in P2 in a helper file outside `pages/` | `DECIDED` |
+| D38 | Expired tokens return `UNAUTHORIZED` / `EXPIRED_TOKEN` (401) | `DECIDED` |
+| D39 | Constant-time comparison uses the `subtle` crate | `DECIDED` |
+| D40 | P2 crates: `jsonwebtoken`, `utoipa`, `utoipa-scalar`; `serde_json` and the `tower-http` `cors` feature | `DECIDED` |
 
 ---
 
@@ -406,7 +412,7 @@ Nothing in this file has been compiled or run. Everything marked as read was rea
 - **Decision:** All 14 rules are approved as written.
 - **Consequences:**
   - They apply from phase P1 on.
-  - Other `PROPOSED` items in the body of `CODING-STANDARDS.md` that are not in the list, such as constant-time secret comparison, are not approved (O12).
+  - Other `PROPOSED` items in the body of `CODING-STANDARDS.md` that are not in the list, such as constant-time secret comparison, were not covered by D28 (the constant-time rule was approved later in D35).
 - **Affects:** CODING-STANDARDS, PLAN.
 
 ## D29: The `statusCode` rename is done in all five related repos
@@ -434,21 +440,21 @@ Nothing in this file has been compiled or run. Everything marked as read was rea
 
 ## D31: Log format and filter follow `kafka-api-gateway-rust`
 
-- **Status:** `PROPOSED` (2026-11-07). Closes `SPEC.md` section 14 item 5, second half.
+- **Status:** `DECIDED` (2026-11-07). Closes `SPEC.md` section 14 item 5, second half.
 - **Evidence (`OBSERVED`):** `kafka-api-gateway-rust/src/logging.rs`.
 - **Decision:** Each line is `<IST time>\t[Target:LEVEL]\t<message>`. The filter is `RUST_LOG` when set, otherwise `info`. The kafka-specific `kafkit_client=error` part is not copied. The `expect` on the IST offset is replaced by a fallback, because of the no-`expect` rule.
 - **Affects:** `src/logging.rs`.
 
 ## D32: P1 crate set follows the references; `tower-http` stays on 0.6
 
-- **Status:** `PROPOSED` (2026-11-07).
+- **Status:** `DECIDED` (2026-11-07).
 - **Evidence:** The crates.io index on 2026-11-07 lists `tower-http` 0.7.1, `axum` 0.8.9, `tokio` 1.54.1, `vercel_runtime` 2.4.1, `validator` 0.21.0, `envy` 0.4.2, `tracing` 0.1.44, `tracing-subscriber` 0.3.23. Only `tower-http` is ahead of the version in both references.
 - **Decision:** Same version lines as the references. `tower-http` stays on 0.6 because both references use it with `axum` 0.8 and 0.7 is not proven with them. `Cargo.lock` pins the exact versions. No crate outside the references is added.
 - **Affects:** `Cargo.toml`.
 
 ## D33: P1 scope trims
 
-- **Status:** `PROPOSED` (2026-11-07).
+- **Status:** `DECIDED` (2026-11-07).
 - **Decision:**
   - F10: assets are served; the `Layout` component moves to P3 with the first page that uses it (no `dioxus` in P1).
   - F05: 404, 405 and panic 500 are done; the validation 400 moves to P2, where the validated-input extractor lives with the middleware.
@@ -458,10 +464,52 @@ Nothing in this file has been compiled or run. Everything marked as read was rea
 
 ## D34: `cargo preview` loads `.env.preview`
 
-- **Status:** `PROPOSED` (2026-11-07), on your request.
+- **Status:** `DECIDED` (2026-11-07), on your request.
 - **Context:** Vercel builds non-main branches as preview deployments that use the Preview environment. `.env.preview` holds those values locally.
 - **Decision:** `cargo preview` is an alias for `xtask preview`: it loads `.env.preview`, validates it, builds Tailwind CSS and runs the API in release mode. `xtask` prints the file it loaded for `dev`, `start` and `preview`, and `build-prod` prints that it validated `.env.production`. `APP_ENV` in `.env.preview` is `preview` (D30).
 - **Affects:** BUILD, `.cargo/config.toml`, `xtask`.
+
+## D35: Client secrets and tokens are compared in constant time
+
+- **Status:** `DECIDED` (2026-11-07). Closes O12.
+- **Context:** A normal comparison stops at the first wrong character, so response time can leak how much of a guess was right.
+- **Decision:** Every comparison of a client secret or token uses a constant-time comparison helper, introduced in P2 with the gate and the API authentication code. Errors still do not leak length or content.
+- **Affects:** `CODING-STANDARDS.md` section 13, SPEC section 4.2, PLAN (P2), `src/middleware/*`.
+
+## D36: P2 includes JWT verification; token signing stays in P3
+
+- **Status:** `DECIDED` (2026-11-07).
+- **Context:** The `Auth` extractor (F06) calls `verify_token`, which does not exist in jobs yet. In `recordlog-api-rust` it lives in `src/features/v1/auth/jwt.rs` next to `sign_token`.
+- **Decision:** P2 adds `verify_token` and the token claims type so the `Auth` extractor works. `sign_token` and the login handler come in P3 (API login). Issuer and claims follow `SPEC.md` section 4.3.
+- **Affects:** PLAN (P2, P3), `src/features/v1/auth/jwt.rs`, `src/middleware/auth.rs`.
+
+## D37: `wants_html` is added in P2 in a helper file outside `pages/`
+
+- **Status:** `DECIDED` (2026-11-07).
+- **Context:** The gate (SPEC section 4.2, step 2) needs `wants_html`, which checks whether the `Accept` header contains `text/html`. In `recordlog-api-rust` it lives in `src/pages/render.rs`; jobs has no `pages/` until P3.
+- **Decision:** P2 adds `wants_html` in a small helper file outside `pages/`, so the gate and the P3 pages both use it.
+- **Affects:** PLAN (P2, P3), `src/middleware/server_gate.rs`.
+
+## D38: Expired tokens return `UNAUTHORIZED` / `EXPIRED_TOKEN` (401)
+
+- **Status:** `DECIDED` (2026-11-07).
+- **Context:** The old jobs code returned `INVALID_TOKEN` for every token that failed verification. `recordlog-api-rust` returns a separate `EXPIRED_TOKEN` for expired tokens (`OBSERVED`: `src/errors/catalog.rs`, `src/features/v1/auth/jwt.rs`).
+- **Decision:** An expired token returns `EXPIRED_TOKEN` (401). Any other verification failure returns `INVALID_TOKEN` (401). `EXPIRED_TOKEN` is added to the jobs error catalog in P2.
+- **Affects:** SPEC sections 4.3 and 13, `src/errors/catalog.rs`, `src/features/v1/auth/jwt.rs`.
+
+## D39: Constant-time comparison uses the `subtle` crate
+
+- **Status:** `DECIDED` (2026-11-07). Implements D35.
+- **Context:** Neither `recordlog-api-rust` nor `kafka-api-gateway-rust` has constant-time comparison code or the `subtle` crate (`OBSERVED`). D32 says a crate outside the references needs your approval.
+- **Decision:** P2 adds the `subtle` crate and compares secrets and tokens with it.
+- **Affects:** `Cargo.toml`, `src/middleware/*`, `CODING-STANDARDS.md` section 13.
+
+## D40: P2 crates and features
+
+- **Status:** `DECIDED` (2026-11-07), under D32 (same version lines as the references). This is the `DECISIONS.md` line that `CODING-STANDARDS.md` section 15, rule 13 asks for.
+- **Evidence (`OBSERVED`, `recordlog-api-rust/Cargo.toml`):** `jsonwebtoken` 11 with `rust_crypto`, `utoipa` 6, `utoipa-scalar` 0.4 with `axum`, `serde_json` 1 as a normal dependency, `tower-http` 0.6 with `catch-panic` and `cors`.
+- **Decision:** P2 adds exactly these. `serde_json` moves from dev-dependencies to dependencies because the `utoipa` path examples use it. `subtle` 2 comes from D39.
+- **Affects:** `Cargo.toml`.
 
 ---
 
@@ -476,7 +524,7 @@ Nothing in this file has been compiled or run. Everything marked as read was rea
 | O3 | New `extractMails` response shape for several `correlationId`s. | Resolved by D12 |
 | O4 | `CONFLICT`: `recordlog-api-rust` expects `statusCode` in the gateway reply, but `kafka-api-gateway-rust` returned `httpCode`. | Resolved by D21 and D29 (rename done by you) |
 | O11 | Field name in the jobs API's own responses. | Resolved by D22 |
-| O12 | Whether client secrets and tokens are compared in constant time (`CODING-STANDARDS.md` section 13, not part of D28). | Needs your decision before P2 |
+| O12 | Whether client secrets and tokens are compared in constant time (`CODING-STANDARDS.md` section 13, not part of D28). | Resolved by D35 |
 | O5 | `OBSERVED`: the kafka gateway `http-publish` request struct has only `topic`, `correlationId` and `value`, with no `deny_unknown_fields`, and uses `correlationId` as the Kafka message key. The old jobs schema allowed optional `key` and `headers`. The Rust jobs client sends only the three fields. | Resolved by evidence, to confirm in SPEC |
 | O6 | Environment variable name (`APP_ENV` vs `NODE_ENV`). | Resolved by D13 |
 | O7 | `OBSERVED`: `.agents/state/checkpoint.md` holds sample content (an `acme-widgets` project), not real project state. | Acceptable, to replace on first save |

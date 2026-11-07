@@ -1,3 +1,4 @@
+pub mod auth;
 pub mod health;
 
 use axum::Router;

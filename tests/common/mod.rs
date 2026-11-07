@@ -9,19 +9,26 @@ use http_body_util::BodyExt;
 use serde_json::Value;
 use tower::ServiceExt;
 
+// Credentials the tests configure and send
+pub const TEST_CLIENT_ID: &str = "test-client";
+pub const TEST_CLIENT_SECRET: &str = "test-secret";
+
+// Secret the tests configure for signing and verifying tokens
+pub const TEST_JWT_SECRET: &str = "test-jwt-secret";
+
 static INIT: Once = Once::new();
 
 // Sets the env variables once, before the global env is first read
 pub fn setup_env() {
     INIT.call_once(|| {
-        // Runs before any router is built, so no other thread reads the env yet
+        // Runs before any request is handled, so no other thread reads the env yet
         unsafe {
             std::env::set_var("APP_NAME", "jobs-api-gateway");
             std::env::set_var("APP_ENV", "development");
             std::env::set_var("APP_PORT", "5000");
-            std::env::set_var("CLIENT_ID", "test-client");
-            std::env::set_var("CLIENT_SECRET", "test-secret");
-            std::env::set_var("JWT_SECRET", "test-jwt-secret");
+            std::env::set_var("CLIENT_ID", TEST_CLIENT_ID);
+            std::env::set_var("CLIENT_SECRET", TEST_CLIENT_SECRET);
+            std::env::set_var("JWT_SECRET", TEST_JWT_SECRET);
             std::env::set_var("AZURE_DB_SERVER", "test-server");
             std::env::set_var("AZURE_DB_DATABASE", "test-db");
             std::env::set_var("AZURE_DB_USER_PUBLIC", "test-public-user");
@@ -47,21 +54,33 @@ pub fn setup_env() {
     });
 }
 
-// Builds the real application router with the test env
-pub fn app() -> Router {
-    setup_env();
-    jobs_api_gateway::app::router()
+// Valid client credential headers
+pub fn auth_headers() -> [(&'static str, &'static str); 2] {
+    [
+        ("x-client-id", TEST_CLIENT_ID),
+        ("x-client-secret", TEST_CLIENT_SECRET),
+    ]
 }
 
-// Sends a request with the given method through a fresh router
-pub async fn send(method: &str, uri: &str) -> Response<Body> {
-    let request = Request::builder()
-        .method(method)
-        .uri(uri)
-        .body(Body::empty())
-        .unwrap();
+// Sends one request with the given method and headers through the given router, after the test env is set
+pub async fn send(
+    router: Router,
+    method: &str,
+    uri: &str,
+    headers: &[(&str, &str)],
+) -> Response<Body> {
+    setup_env();
 
-    app().oneshot(request).await.unwrap()
+    let mut request = Request::builder().method(method).uri(uri);
+
+    for (name, value) in headers {
+        request = request.header(*name, *value);
+    }
+
+    router
+        .oneshot(request.body(Body::empty()).unwrap())
+        .await
+        .unwrap()
 }
 
 // Reads the whole response body as json

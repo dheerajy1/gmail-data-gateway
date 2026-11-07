@@ -18,6 +18,52 @@ impl CatalogEntry {
     }
 }
 
+// 401 entries
+pub mod unauthorized {
+    use super::{CatalogEntry, ErrorCode};
+
+    pub const MISSING_AUTH_HEADERS: CatalogEntry = CatalogEntry::new(
+        ErrorCode::Unauthorized,
+        "Authentication information is required to continue.",
+        "Missing required authentication headers",
+    );
+
+    pub const MISSING_AUTHORIZATION_TOKEN: CatalogEntry = CatalogEntry::new(
+        ErrorCode::Unauthorized,
+        "You must be logged in to access this resource.",
+        "Missing required Authorization token",
+    );
+
+    pub const EXPIRED_TOKEN: CatalogEntry = CatalogEntry::new(
+        ErrorCode::Unauthorized,
+        "Your session has expired. Please log in again.",
+        "Expired token",
+    );
+
+    pub const INVALID_TOKEN: CatalogEntry = CatalogEntry::new(
+        ErrorCode::Unauthorized,
+        "Your session is no longer valid. Please log in again.",
+        "Invalid token",
+    );
+
+    pub const MISSING_SUB_OR_ROLE: CatalogEntry = CatalogEntry::new(
+        ErrorCode::Unauthorized,
+        "JWT is missing required subject (sub) or role claim",
+        "missing_sub_or_role",
+    );
+}
+
+// 400 entries
+pub mod bad_request {
+    use super::{CatalogEntry, ErrorCode};
+
+    pub const INVALID_HEADER_VALUES: CatalogEntry = CatalogEntry::new(
+        ErrorCode::BadRequest,
+        "Some request information is invalid or malformed.",
+        "Invalid authentication header values",
+    );
+}
+
 // 404 entries
 pub mod not_found {
     use super::{CatalogEntry, ErrorCode};
@@ -56,7 +102,13 @@ mod tests {
     use super::*;
 
     // Every entry in the catalogue with the http status it must map to
-    const ENTRIES: [(CatalogEntry, u16); 3] = [
+    const ENTRIES: [(CatalogEntry, u16); 9] = [
+        (unauthorized::MISSING_AUTH_HEADERS, 401),
+        (unauthorized::MISSING_AUTHORIZATION_TOKEN, 401),
+        (unauthorized::EXPIRED_TOKEN, 401),
+        (unauthorized::INVALID_TOKEN, 401),
+        (unauthorized::MISSING_SUB_OR_ROLE, 401),
+        (bad_request::INVALID_HEADER_VALUES, 400),
         (not_found::RESOURCE_NOT_FOUND, 404),
         (method_not_supported::METHOD_NOT_ALLOWED, 405),
         (internal_server_error::SERVER_ERROR, 500),
