@@ -1,7 +1,46 @@
 ~/dev/vs-code/jobs-api-gateway-rust
 
 ./
+├── .agent/
+│   ├── README.md
+│   ├── skills/
+│   │   ├── architect/
+│   │   │   ├── SKILL.md
+│   │   │   └── reference.md
+│   │   ├── documentation-architect/
+│   │   │   ├── SKILL.md
+│   │   │   └── reference.md
+│   │   ├── export/
+│   │   │   ├── SKILL.md
+│   │   │   └── reference.md
+│   │   ├── handoff/
+│   │   │   ├── SKILL.md
+│   │   │   └── reference.md
+│   │   ├── init/
+│   │   │   ├── SKILL.md
+│   │   │   └── reference.md
+│   │   ├── project-instructions-builder/
+│   │   │   ├── SKILL.md
+│   │   │   └── reference.md
+│   │   ├── recover/
+│   │   │   ├── SKILL.md
+│   │   │   └── reference.md
+│   │   ├── restore/
+│   │   │   ├── SKILL.md
+│   │   │   └── reference.md
+│   │   ├── review/
+│   │   │   ├── SKILL.md
+│   │   │   └── reference.md
+│   │   └── save/
+│   │       ├── SKILL.md
+│   │       └── reference.md
+│   └── state/
+│       ├── checkpoint-old.md
+│       └── checkpoint.md
+├── .env.development
 ├── .env.example
+├── .env.preview
+├── .env.production
 ├── .github/
 │   ├── CODEOWNERS
 │   ├── labeler.yml
@@ -13,19 +52,68 @@
 │       └── test.yml
 ├── .gitignore
 ├── .releaserc.json*
+├── .vercelignore
 ├── CHANGELOG.md
+├── Cargo.lock
+├── Cargo.toml
 ├── LICENSE
 ├── README.md
 ├── docker/
 │   ├── Dockerfile
 │   ├── Dockerfile.subscriber
 │   └── docker-compose.yml
+├── docs/
+│   ├── BUILD.md
+│   ├── CODING-STANDARDS.md
+│   ├── DECISIONS.md
+│   ├── FEATURES.md
+│   ├── PLAN.md
+│   └── SPEC.md
 ├── proj-flowchart.txt
 ├── public/
 │   ├── favicon.ico*
 │   ├── global.css
 │   └── logo.png*
+├── src/
+│   ├── app.rs
+│   ├── config/
+│   │   ├── env.rs
+│   │   └── mod.rs
+│   ├── errors/
+│   │   ├── api_error.rs
+│   │   ├── catalog.rs
+│   │   ├── code.rs
+│   │   ├── fallback.rs
+│   │   ├── mod.rs
+│   │   └── panic.rs
+│   ├── features/
+│   │   ├── mod.rs
+│   │   └── v1/
+│   │       ├── health/
+│   │       │   ├── handler.rs
+│   │       │   ├── mod.rs
+│   │       │   ├── model.rs
+│   │       │   └── service.rs
+│   │       └── mod.rs
+│   ├── lib.rs
+│   ├── logging.rs
+│   ├── main.rs
+│   ├── schemas/
+│   │   ├── env.rs
+│   │   ├── mod.rs
+│   │   └── response.rs
+│   └── tailwind.css
 ├── structure.txt
-└── vercel.json*
+├── tests/
+│   ├── common/
+│   │   └── mod.rs
+│   ├── env.rs
+│   ├── errors.rs
+│   └── health.rs
+├── vercel.json*
+└── xtask/
+    ├── Cargo.toml
+    └── src/
+        └── main.rs
 
-5 directories, 22 files
+30 directories, 85 files

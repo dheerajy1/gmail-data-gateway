@@ -1,0 +1,7 @@
+[alias]
+xtask = "run --package xtask --"
+css = "xtask css"
+dev = "xtask dev"
+start = "xtask start"
+build-prod = "xtask build"
+preview = "xtask preview"

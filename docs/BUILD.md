@@ -53,6 +53,7 @@ Defined in `.cargo/config.toml` and backed by `xtask`. The recordlog set is the 
 | `cargo css` | Builds the Tailwind CSS file | P1 |
 | `cargo dev` | Runs the API with the development environment | P1 |
 | `cargo start` | Runs the API with the production environment | P1 |
+| `cargo preview` | Runs the API in release mode with `.env.preview` (the values of Vercel preview deployments) | P1 |
 | `cargo build-prod` | Release build of the API package | P1 |
 | `cargo dev-subscriber` | Runs the subscriber with the development environment | P7 |
 | `cargo start-subscriber` | Runs the subscriber with the production environment | P7 |
@@ -104,7 +105,8 @@ When a command fails, paste the full output of the first failing command, from t
 `FACT` from `.gitignore` and `git ls-files`: `.env.*` is ignored except `.env.example`.
 
 - The variable names and rules are in `SPEC.md` section 10.
-- The variable that selects the environment is `APP_ENV` (D13). `.env.development` and `.env.production` still say `NODE_ENV` and are renamed in P1.
+- The variable that selects the environment is `APP_ENV` (D13). The `NODE_ENV` to `APP_ENV` rename is done in `.env.development` and `.env.production`.
+- Env files are loaded only by the `xtask` commands (`cargo dev`, `cargo start`, `cargo preview`, `cargo build-prod`), each of which prints which file it used. A plain `cargo run` loads no file and stops with `APP_NAME is required`.
 - Real values must never be committed, pasted into chats, or written into docs.
 
 ## 5. Running the pieces
@@ -113,6 +115,7 @@ When a command fails, paste the full output of the first failing command, from t
 | --- | --- | --- |
 | API, development | `cargo dev` | P1 |
 | API, production mode | `cargo start` | P1 |
+| API, preview values | `cargo preview` | P1 |
 | Subscriber, development | `cargo dev-subscriber` | P7 |
 | Subscriber, production mode | `cargo start-subscriber` | P7 |
 | Subscriber in Docker | `cargo docker-up` | P10 |

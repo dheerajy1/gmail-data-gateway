@@ -2,7 +2,7 @@
 
 Owns **how code is written** in this repo: structure, naming, errors, comments, dependencies, testing and what counts as done. What to build is in `SPEC.md` and `FEATURES.md`; reasons are in `DECISIONS.md`.
 
-Last updated: 2026-11-06
+Last updated: 2026-11-07
 
 ## How to read this file
 
@@ -200,3 +200,18 @@ You approved these 14 rules on 2026-11-06 (D28). They are tagged `PROPOSED` in t
 12. Each phase adds the tests for its behavior in the same phase.
 13. A new crate needs a line in `DECISIONS.md`.
 14. Root crate name `jobs-api-gateway`.
+
+## 16. Rules learned from verify runs
+
+Added 2026-11-07 after the first P1 verify. They are `PROPOSED` until you approve them. Each one comes from a real result.
+
+**Evidence (`OBSERVED`, your output):** Your toolchain is Rust and clippy 1.98.0. `cargo check` passed on the P1 code. `cargo clippy --workspace --all-targets --locked -- -D warnings` failed with `clippy::redundant_guards` in `src/config/env.rs`: a match arm `Some(field) if field == "google_appid"` must be the pattern `Some("google_appid")`. Claude cannot compile in chat (Rust 1.85+ is not installable there), so Claude's code is never clippy-checked before it reaches you.
+
+1. **Literal patterns, not guards.** In `match` and `if let`, compare against a literal with a pattern (`Some("name")`), never with a guard that only tests equality (`Some(x) if x == "name"`).
+2. **Write for the newest clippy.** The default lint set of clippy 1.98.0 is the target. Claude does not rely on what older clippy accepted.
+3. **Claude self-review before delivery.** Because Claude cannot run clippy, each phase gets a manual pass against the default clippy groups (`style`, `complexity`, `perf`, `correctness`, `suspicious`). The pass looks at: redundant guards, needless borrows and clones, needless `return`, manual `map` or `unwrap_or` patterns, `len() == 0` instead of `is_empty()`, single-arm `match` that should be `if let`, and unused imports and variables. The delivery message says that this pass was done and that it is not a clippy run.
+4. **Verify results are the only proof.** A phase is described as compiled, linted or tested only after you report the output. Until then it is `DELIVERED, NOT VERIFIED`.
+5. **Helpers shared by test files must be used by every test file that declares `mod common`.** This avoids `dead_code` warnings without an `allow` (rule 1 of section 15). A helper used by only one test file goes in that file.
+6. **Tests do not need `Debug` on secret-holding types.** Test code matches on `Result` (`let Ok(x) = ... else { panic!(..) }`) instead of `unwrap_err()`, so `Debug` is never derived on `EnvSchema` (section 15, rule 4).
+7. **`Cargo.lock` is created by your first cargo run.** It is committed in the same phase, because `clippy --locked` needs it.
+8. **Library error text is never assumed to name the variable.** Errors from `envy`, `serde` and `validator` are mapped to a message that names the variable at the boundary (`describe_envy_error`), and each mapping has a test with a real failing value. Evidence (`OBSERVED`, your output): `APP_ENV=staging` gave an `envy` error without the name `app_env`, so `tests/env.rs::app_env_rejects_other_values` failed. A second run showed that `envy` writes the variable name in lowercase for a missing value but in its original case for a parse error, so `Google_APPID` came out as `GOOGLE_APPID`; name mapping therefore compares case-insensitively (checked in the `envy` 0.4.2 source).

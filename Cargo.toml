@@ -1,0 +1,30 @@
+[package]
+name = "jobs-api-gateway"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[workspace]
+members = ["xtask"]
+
+[[bin]]
+name = "main"
+path = "src/main.rs"
+
+[dependencies]
+axum = "0.8"
+tokio = { version = "1", features = ["full"] }
+tower = "0.5"
+tower-http = { version = "0.6", features = ["catch-panic"] }
+vercel_runtime = { version = "2.4", features = ["axum"] }
+envy = "0.4"
+serde = { version = "1.0", features = ["derive"] }
+validator = { version = "0.21", features = ["derive"] }
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[dev-dependencies]
+tower = { version = "0.5", features = ["util"] }
+http-body-util = "0.1"
+serde_json = "1"

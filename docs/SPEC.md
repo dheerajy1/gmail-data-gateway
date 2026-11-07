@@ -325,7 +325,7 @@ Loaded and validated at start-up (`PROPOSED` to follow recordlog Rust: serde plu
 | Name | Used by | Rule (from old schema) |
 | --- | --- | --- |
 | `APP_NAME` | API | 1 to 50 characters. |
-| `APP_ENV` | API, subscriber | `DECIDED` D13. Allowed values `UNKNOWN`; define in the config phase. |
+| `APP_ENV` | API, subscriber | `DECIDED` D13, D30. Allowed values `development`, `preview`, `production`. |
 | `APP_PORT` | API | Positive integer. |
 | `CLIENT_ID` | API | 1 to 50 characters (header limit is 30). |
 | `CLIENT_SECRET` | API | 1 to 50 characters. |

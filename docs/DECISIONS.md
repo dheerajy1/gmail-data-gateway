@@ -2,7 +2,7 @@
 
 Owns the **why** behind material decisions. The current resulting state lives in `SPEC.md`.
 
-Last updated: 2026-11-06
+Last updated: 2026-11-07
 
 ## Status legend
 
@@ -60,6 +60,11 @@ Nothing in this file has been compiled or run. Everything marked as read was rea
 | D27 | The subscriber image is built natively for `linux/arm64` | `ASSUMPTION` (from your command output) |
 | D28 | The 14 coding rules in `CODING-STANDARDS.md` section 15 are approved | `DECIDED` |
 | D29 | `statusCode` rename is done in all five related repos | `DECIDED` (done by you, untested) |
+| D30 | Allowed `APP_ENV` values are `development`, `preview` and `production` | `DECIDED` (preview added by you) |
+| D31 | Log format and filter follow `kafka-api-gateway-rust` | `PROPOSED` |
+| D32 | P1 crate set follows the references; `tower-http` stays on 0.6 | `PROPOSED` |
+| D33 | P1 scope trims: layout, validation 400, `db` health part and `Cargo.lock` | `PROPOSED` |
+| D34 | `cargo preview` loads `.env.preview` | `PROPOSED` |
 
 ---
 
@@ -420,7 +425,47 @@ Nothing in this file has been compiled or run. Everything marked as read was rea
   - The `recordlog-api-rust` commit also replaced its Bun `release.yml` (see D25).
 - **Affects:** SPEC, PLAN, FEATURES.
 
+## D30: Allowed `APP_ENV` values are `development`, `preview` and `production`
+
+- **Status:** `DECIDED` (2026-11-07). Closes `SPEC.md` section 14 item 5, first half. The first proposal had two values; you kept `APP_ENV=preview` in `.env.preview`, so `preview` is added.
+- **Evidence (`OBSERVED`):** `kafka-api-gateway-rust/src/schemas/env.rs` accepts only these two lowercase values; `.env.development` and `.env.production` here already use them.
+- **Decision:** `AppEnv` is an enum with these three values; any other value stops start-up with "APP_ENV must be development, preview or production".
+- **Affects:** SPEC, `src/schemas/env.rs`.
+
+## D31: Log format and filter follow `kafka-api-gateway-rust`
+
+- **Status:** `PROPOSED` (2026-11-07). Closes `SPEC.md` section 14 item 5, second half.
+- **Evidence (`OBSERVED`):** `kafka-api-gateway-rust/src/logging.rs`.
+- **Decision:** Each line is `<IST time>\t[Target:LEVEL]\t<message>`. The filter is `RUST_LOG` when set, otherwise `info`. The kafka-specific `kafkit_client=error` part is not copied. The `expect` on the IST offset is replaced by a fallback, because of the no-`expect` rule.
+- **Affects:** `src/logging.rs`.
+
+## D32: P1 crate set follows the references; `tower-http` stays on 0.6
+
+- **Status:** `PROPOSED` (2026-11-07).
+- **Evidence:** The crates.io index on 2026-11-07 lists `tower-http` 0.7.1, `axum` 0.8.9, `tokio` 1.54.1, `vercel_runtime` 2.4.1, `validator` 0.21.0, `envy` 0.4.2, `tracing` 0.1.44, `tracing-subscriber` 0.3.23. Only `tower-http` is ahead of the version in both references.
+- **Decision:** Same version lines as the references. `tower-http` stays on 0.6 because both references use it with `axum` 0.8 and 0.7 is not proven with them. `Cargo.lock` pins the exact versions. No crate outside the references is added.
+- **Affects:** `Cargo.toml`.
+
+## D33: P1 scope trims
+
+- **Status:** `PROPOSED` (2026-11-07).
+- **Decision:**
+  - F10: assets are served; the `Layout` component moves to P3 with the first page that uses it (no `dioxus` in P1).
+  - F05: 404, 405 and panic 500 are done; the validation 400 moves to P2, where the validated-input extractor lives with the middleware.
+  - F21: `GET /api/v1/health` returns `data.app` only; `data.db` is added in P3 (additive).
+  - `Cargo.lock` is not in this tarball because it cannot be generated here; your first `cargo check` creates it and it is committed with P1.
+- **Affects:** FEATURES, PLAN.
+
+## D34: `cargo preview` loads `.env.preview`
+
+- **Status:** `PROPOSED` (2026-11-07), on your request.
+- **Context:** Vercel builds non-main branches as preview deployments that use the Preview environment. `.env.preview` holds those values locally.
+- **Decision:** `cargo preview` is an alias for `xtask preview`: it loads `.env.preview`, validates it, builds Tailwind CSS and runs the API in release mode. `xtask` prints the file it loaded for `dev`, `start` and `preview`, and `build-prod` prints that it validated `.env.production`. `APP_ENV` in `.env.preview` is `preview` (D30).
+- **Affects:** BUILD, `.cargo/config.toml`, `xtask`.
+
 ---
+
+
 
 ## Open items (not decisions)
 

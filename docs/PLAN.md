@@ -2,7 +2,7 @@
 
 Owns the **order of work**: build phases, what each one delivers, and how to know it is finished. What the system does is in `SPEC.md` and `FEATURES.md`; why is in `DECISIONS.md`; how to run, verify and deliver a phase is in `BUILD.md`.
 
-Last updated: 2026-11-06
+Last updated: 2026-11-07
 
 ## Rules for all phases
 
@@ -14,7 +14,7 @@ Last updated: 2026-11-06
 - **Commit** happens only after the phase delivered and your verify passed. Commit text follows the format in `BUILD.md`.
 - **References** are re-read at the start of each phase. A pattern is copied only after reading the reference file again.
 - **Decisions** made during a phase are written to `DECISIONS.md` in the same phase.
-- **Status** of every phase is `NOT STARTED`. Nothing has been built.
+- **Status:** P1 is `DELIVERED, NOT VERIFIED` (written 2026-11-07, never compiled: Rust 1.85+ is not installable in the chat). P2 to P11 are `NOT STARTED`.
 
 ## Phase map
 
