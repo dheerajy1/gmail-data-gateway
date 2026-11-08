@@ -77,6 +77,7 @@ Nothing in this file has been compiled or run. Everything marked as read was rea
 | D44 | Pages show the product name "Gmail data gateway API" | `DECIDED` |
 | D45 | P3 crates: `tiberius`, `bb8`, `bb8-tiberius`, `bcrypt`, `dioxus`, `dioxus-ssr` | `DECIDED` |
 | D46 | P4: `reqwest` crate, a gateway client that takes its target as an argument, and the gateway reply `data` shape | `DECIDED` |
+| D47 | P5: extract request rules, IST dates, service database login, Gmail session, new error entries | `DECIDED` |
 
 ---
 
@@ -556,6 +557,20 @@ Nothing in this file has been compiled or run. Everything marked as read was rea
 - **Evidence (`OBSERVED`):** `recordlog-api-rust/Cargo.toml` has `reqwest` 0.12 with `json` and `rustls-tls`. `kafka-api-gateway-rust` returns `statusCode` 202 and `data` of `{ topic, correlationId }` (`SuccessResponse::accepted`, `HttpPublishData`), so the D29 rename is in that code and the `data` shape is settled.
 - **Decision:** P4 adds `reqwest` as in the reference. `post_to_gateway` reads the env and calls `post_to_gateway_at`, which takes the gateway url and the four credentials as a `GatewayTarget`. Tests start a fake gateway on a free local port and call `post_to_gateway_at`, so they need no env variables and no change to the shared test env. `KAFKA_GATEWAY_FAILED` (500) is added to the error catalog.
 - **Affects:** `Cargo.toml`, `src/clients/kafka_gateway.rs`, `src/errors/catalog.rs`, `tests/gateway.rs`, SPEC section 7.
+
+## D47: P5 extract request, credentials and Gmail session
+
+- **Status:** `DECIDED` (2026-11-07). Parts marked `PROPOSED` are my choices, open to change.
+- **Evidence (`OBSERVED`):** your run of `[03spgetLastDateAppliedJobs]` returned `2026-08-19 11:25:07.0000000 +05:30`; `[05spgetActiveGoogleOAuthCreds]` returns the credentials as json in `notes` and raises 50002 (no app row) and 50003 (no active token); your example dates are `YYYY/M/D`; Google's documentation confirms the list, get and token calls.
+- **Decisions:**
+  - Request: modes, fields and rules as in SPEC section 5.1, plus `inputMailsCount` of at least 1 when given (`PROPOSED`) and unparsable dates are 400.
+  - Dates: `YYYY/M/D` (zero padding optional) means midnight India time (+05:30). You delegated this choice. Gmail gets exact unix seconds. Revisit if dates look wrong in production.
+  - The procedures run on the service database login (SPEC section 9.1); the pool is added in P5.
+  - Credentials: 50002 is `CLIENT_ID_NOT_FOUND` (404), 50003 is `NO_ACTIVE_CREDENTIALS` (401), 50001 on the last-date procedure is `NO_EMAIL_DATA` (404), anything else is `EXTRACT_FAILED` (500). `APPS_TABLE_MISSING` and `TOKENS_TABLE_MISSING` are not ported (your answer).
+  - Gmail session: credentials are read once per process; the access token is cached until 60 seconds before it expires; a 401 from Gmail refreshes the token once and retries once; status mapping follows SPEC section 5.5; concurrent calls share one refresh.
+  - New catalog entries: `GMAIL_SESSION_EXPIRED`, `NO_ACTIVE_CREDENTIALS`, `GMAIL_ACCESS_DENIED`, `GMAIL_RATE_LIMIT`, `NO_EMAIL_DATA`, `CLIENT_ID_NOT_FOUND`, `EXTRACT_FAILED`. Their message texts are new (`PROPOSED`).
+  - Layout: `src/features/v1/extract_mails/` (model, query, service), `src/clients/gmail.rs`, `src/db/applied_jobs.rs`, `src/db/google_oauth.rs`. No route yet; the route comes in the phase that publishes.
+- **Affects:** SPEC sections 5.1 to 5.5, `src/errors/catalog.rs`, `src/db/*`, `src/clients/gmail.rs`, `src/features/v1/extract_mails/*`, `tests/gmail.rs`.
 
 ---
 

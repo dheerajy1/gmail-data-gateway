@@ -57,6 +57,18 @@ pub mod unauthorized {
         "The username or password you entered is incorrect.",
         "Invalid credentials",
     );
+
+    pub const GMAIL_SESSION_EXPIRED: CatalogEntry = CatalogEntry::new(
+        ErrorCode::Unauthorized,
+        "Your Gmail session has expired. Please reconnect your Gmail account.",
+        "Gmail session expired",
+    );
+
+    pub const NO_ACTIVE_CREDENTIALS: CatalogEntry = CatalogEntry::new(
+        ErrorCode::Unauthorized,
+        "No active Google credentials are available for this application.",
+        "No active credentials found",
+    );
 }
 
 // 400 entries
@@ -85,6 +97,12 @@ pub mod forbidden {
         "You are not allowed to perform this action.",
         "You do not have permission to perform this action",
     );
+
+    pub const GMAIL_ACCESS_DENIED: CatalogEntry = CatalogEntry::new(
+        ErrorCode::Forbidden,
+        "Access to the Gmail account was denied.",
+        "Gmail access denied",
+    );
 }
 
 // 404 entries
@@ -95,6 +113,18 @@ pub mod not_found {
         ErrorCode::NotFound,
         "The requested resource does not exist or is no longer available.",
         "The requested resource does not exist",
+    );
+
+    pub const NO_EMAIL_DATA: CatalogEntry = CatalogEntry::new(
+        ErrorCode::NotFound,
+        "No stored email data was found to continue from.",
+        "No email data found",
+    );
+
+    pub const CLIENT_ID_NOT_FOUND: CatalogEntry = CatalogEntry::new(
+        ErrorCode::NotFound,
+        "The Google OAuth client data was not found.",
+        "Google OAuth client not found",
     );
 }
 
@@ -136,6 +166,23 @@ pub mod internal_server_error {
         "Failed to communicate with the Kafka gateway service.",
         "Kafka gateway communication error",
     );
+
+    pub const EXTRACT_FAILED: CatalogEntry = CatalogEntry::new(
+        ErrorCode::InternalServerError,
+        "Failed to extract emails.",
+        "Email extraction failed",
+    );
+}
+
+// 429 entries
+pub mod too_many_requests {
+    use super::{CatalogEntry, ErrorCode};
+
+    pub const GMAIL_RATE_LIMIT: CatalogEntry = CatalogEntry::new(
+        ErrorCode::TooManyRequests,
+        "Gmail is limiting requests right now. Please try again later.",
+        "Gmail rate limit exceeded",
+    );
 }
 
 // 503 entries
@@ -154,22 +201,29 @@ mod tests {
     use super::*;
 
     // Every entry in the catalogue with the http status it must map to
-    const ENTRIES: [(CatalogEntry, u16); 16] = [
+    const ENTRIES: [(CatalogEntry, u16); 23] = [
         (unauthorized::MISSING_AUTH_HEADERS, 401),
         (unauthorized::MISSING_AUTHORIZATION_TOKEN, 401),
         (unauthorized::EXPIRED_TOKEN, 401),
         (unauthorized::INVALID_TOKEN, 401),
         (unauthorized::MISSING_SUB_OR_ROLE, 401),
         (unauthorized::INVALID_CREDENTIALS, 401),
+        (unauthorized::GMAIL_SESSION_EXPIRED, 401),
+        (unauthorized::NO_ACTIVE_CREDENTIALS, 401),
         (bad_request::INVALID_HEADER_VALUES, 400),
         (bad_request::INVALID_INPUT, 400),
         (forbidden::ACCESS_DENIED, 403),
+        (forbidden::GMAIL_ACCESS_DENIED, 403),
         (not_found::RESOURCE_NOT_FOUND, 404),
+        (not_found::NO_EMAIL_DATA, 404),
+        (not_found::CLIENT_ID_NOT_FOUND, 404),
+        (too_many_requests::GMAIL_RATE_LIMIT, 429),
         (method_not_supported::METHOD_NOT_ALLOWED, 405),
         (internal_server_error::SERVER_ERROR, 500),
         (internal_server_error::TOKEN_SIGNING_FAILED, 500),
         (internal_server_error::DATABASE_ERROR, 500),
         (internal_server_error::KAFKA_GATEWAY_FAILED, 500),
+        (internal_server_error::EXTRACT_FAILED, 500),
         (service_unavailable::DB_PROBE_FAILED, 503),
     ];
 

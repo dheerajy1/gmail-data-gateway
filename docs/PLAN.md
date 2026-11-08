@@ -14,7 +14,7 @@ Last updated: 2026-11-07
 - **Commit** happens only after the phase delivered and your verify passed. Commit text follows the format in `BUILD.md`.
 - **References** are re-read at the start of each phase. A pattern is copied only after reading the reference file again.
 - **Decisions** made during a phase are written to `DECISIONS.md` in the same phase.
-- **Status:** P1 is `VERIFIED` (2026-11-07: fmt, check, clippy and 16 tests pass on your machine, and `GET /api/v1/health` works on the Vercel preview). P2 is `VERIFIED` (2026-11-07: fmt, check, clippy and 64 tests pass on your machine; `cargo build-prod` and `cargo start` work; `GET /api/v1/health` answers through the dev tunnel). P3 is `VERIFIED` (2026-11-07: fmt, check, clippy and 90 tests pass on your machine; `cargo build-prod` and `cargo start` work; docs login sets the cookie, API login returns a token, and `GET /api/v1/health` reports the database UP against the real Azure database). P4 is `VERIFIED` (2026-11-07: fmt, check, clippy and 100 tests pass on your machine, including the fake gateway tests; the live check waits for P11). P5 to P11 are `NOT STARTED`.
+- **Status:** P1 is `VERIFIED` (2026-11-07: fmt, check, clippy and 16 tests pass on your machine, and `GET /api/v1/health` works on the Vercel preview). P2 is `VERIFIED` (2026-11-07: fmt, check, clippy and 64 tests pass on your machine; `cargo build-prod` and `cargo start` work; `GET /api/v1/health` answers through the dev tunnel). P3 is `VERIFIED` (2026-11-07: fmt, check, clippy and 90 tests pass on your machine; `cargo build-prod` and `cargo start` work; docs login sets the cookie, API login returns a token, and `GET /api/v1/health` reports the database UP against the real Azure database). P4 is `VERIFIED` (2026-11-07: fmt, check, clippy and 100 tests pass on your machine, including the fake gateway tests; the live check waits for P11). P5 is `VERIFIED` (2026-11-08: fmt, check, clippy and 132 tests pass on your machine; the real token refresh and the real `Sync` read moved to P6, where the route exists). P6 to P11 are `NOT STARTED`.
 
 ## Phase map
 
@@ -105,7 +105,8 @@ Dependencies: P2 needs P1. P3 needs P2. P4 needs P1. P5 needs P3. P6 needs P4 an
   - `Sync` on an empty table returns 404 `NO_EMAIL_DATA`.
   - Credentials load with `Google_APPID`; the access token is cached and refreshed on 401.
   - Gmail 400 or 401, 403 and 429 map to the listed codes.
-- **Manual checks (yours):** run a token refresh against your real Google app.
+- **Manual checks (yours):** moved to P6 on 2026-11-08, because P5 has no route: a token refresh against your real Google app and a `Sync` read against your real database.
+- **Scope notes (2026-11-07):** P5 delivers the pieces and no route: request validation, query building, the last-date and credentials database access on the service login, and the Gmail session (token cache, 401 refresh and retry, status mapping). Decisions are in D47. The `extractMails` route that uses them comes with the phase that publishes. No new crates.
 - **Commit scope suggestion:** `feat(extract)`.
 
 ## P6: `extractMails`: reading and chunked publish
@@ -117,7 +118,7 @@ Dependencies: P2 needs P1. P3 needs P2. P4 needs P1. P5 needs P3. P6 needs P4 an
   - 250 records publish 3 events of 100, 100 and 50, oldest first; the response has `correlationIds`, `recordCount`, `chunkCount`, `status`.
   - Zero records return `NO_NEW_RECORDS` and publish nothing.
   - A failure on chunk 2 stops the request, reports the published count and uses `KAFKA_GATEWAY_FAILED`.
-- **Manual checks (yours):** a small `Increment` run against the real mailbox and gateway, after P11's gateway prerequisite.
+- **Manual checks (yours):** a small `Increment` run against the real mailbox and gateway, after P11's gateway prerequisite. Also the checks moved from P5: a token refresh against your real Google app and a `Sync` read against your real database.
 - **Risk to record:** the measured time of a `Bulk` run on Vercel (D2).
 - **Commit scope suggestion:** `feat(extract)`.
 

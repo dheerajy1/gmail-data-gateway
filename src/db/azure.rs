@@ -40,3 +40,15 @@ static PUBLIC_POOL: LazyLock<AzurePool> = LazyLock::new(|| {
 pub fn public_pool() -> &'static AzurePool {
     &PUBLIC_POOL
 }
+
+// Pool for the service user, used by the stored procedures of the extract flow (SPEC section 9.1)
+static SERVICE_POOL: LazyLock<AzurePool> = LazyLock::new(|| {
+    let env = env();
+
+    build_pool(&env.azure_db_user_service, &env.azure_db_password_service)
+});
+
+// Returns the service user pool, created on first use
+pub fn service_pool() -> &'static AzurePool {
+    &SERVICE_POOL
+}

@@ -145,10 +145,10 @@ Field name (`DECIDED`, D22): the jobs API's own envelope uses `statusCode`, not 
 | `type` | `Bulk`, `Increment` or `Sync` | Required. |
 | `query` | string | Required, at least 1 character. Gmail search text. |
 | `inputMailsCount` | number | Optional. Hard maximum of mails; ignored in `Bulk`. |
-| `inputDateAfter` | string | Optional date. |
-| `inputDateBefore` | string | Optional date. |
+| `inputDateAfter` | string | Optional date as `YYYY/M/D`, for example `2026/11/2`; `2026/11/02` is also accepted (`OBSERVED`, your example). |
+| `inputDateBefore` | string | Optional date, same format as `inputDateAfter`. |
 
-Validation rules:
+Validation rules (a failure is `BAD_REQUEST` / `INVALID_INPUT`, 400; `inputMailsCount` must be at least 1 when given, `PROPOSED`, D47):
 
 - `Bulk`: neither date field allowed.
 - `Sync`: neither date field allowed (the date comes from the database).
@@ -162,7 +162,7 @@ Validation rules:
 | `Sync` | `query` plus ` after:<unix seconds of last stored date>` | `inputMailsCount` if given. |
 | `Increment` | `query` plus ` after:<unix>` and/or ` before:<unix>` | `inputMailsCount` if given. |
 
-The last stored date for `Sync` comes from `[02sjobsData].[03spgetLastDateAppliedJobs]`. When the table is empty it raises error 50001, mapped to `NOT_FOUND` / `NO_EMAIL_DATA` (404). Other failures map to `INTERNAL_SERVER_ERROR` / `EXTRACT_FAILED`. The exact text format of the returned date is `UNVERIFIED` (earlier reading: latest `dateIST` as text); confirm before writing the parser.
+The last stored date for `Sync` comes from `[02sjobsData].[03spgetLastDateAppliedJobs]`. When the table is empty it raises error 50001, mapped to `NOT_FOUND` / `NO_EMAIL_DATA` (404). Other failures map to `INTERNAL_SERVER_ERROR` / `EXTRACT_FAILED`. The procedure returns one row with `result` and `date`, where `date` is text like `2026-08-19 11:25:07.0000000 +05:30` (`OBSERVED`: your run of the procedure on 2026-11-07); it is read with the format `%Y-%m-%d %H:%M:%S%.f %:z` and converted to unix seconds. Dates in the request are read as midnight India time (+05:30), so `after:` starts at 00:00 IST of that day and `before:` ends before 00:00 IST of that day (`DECIDED`, D47, you delegated the choice; Gmail takes unix seconds exactly).
 
 ### 5.3 Gmail reading (`FACT` for behavior)
 
@@ -174,11 +174,13 @@ The last stored date for `Sync` comes from `[02sjobsData].[03spgetLastDateApplie
 - A mail is dropped silently if `From`, `Subject`, snippet or `Date` is empty after cleaning, if the date cannot be formatted, or if reading it fails.
 - Dates are converted to IST with the format `YYYY-MM-DDTHH:MM:SS+05:30`. The old code adds a fixed +5:30 offset to the parsed instant.
 
-Gmail request details (`UNVERIFIED`, from my general knowledge; verify against Google's official documentation in the build phase, `DECIDED` D4):
+Gmail request details (`OBSERVED`: checked against Google's official documentation on 2026-11-07, `DECIDED` D4):
 
 - List: `GET https://gmail.googleapis.com/gmail/v1/users/me/messages` with `q`, `maxResults`, `pageToken`.
 - Read: `GET .../users/me/messages/{id}` with `format=metadata` and `metadataHeaders`.
-- Token refresh: `POST https://oauth2.googleapis.com/token` with `grant_type=refresh_token`.
+- Token refresh: `POST https://oauth2.googleapis.com/token` with a form body of `client_id`, `client_secret`, `refresh_token` and `grant_type=refresh_token`; the reply has `access_token`, `expires_in` (about 3599 seconds) and `scope`.
+- `maxResults` defaults to 100 and is at most 500; the list reply holds only message ids and `nextPageToken`.
+- Google says `q` cannot be used with the `gmail.metadata` scope, so the refresh token needs `gmail.readonly` or broader.
 
 ### 5.4 Credentials (`FACT`)
 

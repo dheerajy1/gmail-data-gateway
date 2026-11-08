@@ -1,4 +1,5 @@
 pub mod auth;
+pub mod extract_mails;
 pub mod health;
 
 use axum::Router;
