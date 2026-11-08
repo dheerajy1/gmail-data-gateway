@@ -35,6 +35,13 @@ impl ApiError {
         }
     }
 
+    // Replaces the message and keeps the code and the error text
+    pub fn with_message(mut self, message: impl Into<String>) -> Self {
+        self.message = message.into();
+
+        self
+    }
+
     pub fn code(&self) -> ErrorCode {
         self.code
     }

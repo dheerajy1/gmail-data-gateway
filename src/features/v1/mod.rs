@@ -9,6 +9,7 @@ pub fn router() -> Router {
     Router::new().nest(
         "/api/v1",
         Router::new()
+            .nest("/admin", extract_mails::handler::router())
             .nest("/auth", auth::handler::router())
             .nest("/health", health::handler::router()),
     )

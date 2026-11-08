@@ -102,3 +102,28 @@ async fn scalar_page_is_served() {
 
     assert!(html.contains("Gmail data gateway API"));
 }
+
+// The spec lists the extract route with its operation id
+#[tokio::test]
+async fn spec_lists_the_extract_route() {
+    let spec = spec().await;
+    let operation = &spec["paths"]["/api/v1/admin/extractMails"]["post"];
+
+    assert!(operation.is_object());
+    assert_eq!(operation["operationId"], "extract_mails");
+}
+
+// The extract operation documents its error responses by status
+#[tokio::test]
+async fn extract_documents_error_responses() {
+    let spec = spec().await;
+    let responses = &spec["paths"]["/api/v1/admin/extractMails"]["post"]["responses"];
+
+    for status in ["200", "400", "401", "403", "404", "429", "500"] {
+        assert!(responses[status].is_object(), "missing status {status}");
+    }
+
+    let examples = &responses["500"]["content"]["application/json"]["examples"];
+
+    assert!(examples["Kafka gateway communication error"].is_object());
+}

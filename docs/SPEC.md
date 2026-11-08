@@ -2,7 +2,7 @@
 
 Owns the **what**: the observable behavior and contracts of the rewritten system. The reasons live in `DECISIONS.md`; the order of work lives in `PLAN.md`.
 
-Last updated: 2026-11-06
+Last updated: 2026-11-08
 
 ## How to read this file
 
@@ -168,11 +168,12 @@ The last stored date for `Sync` comes from `[02sjobsData].[03spgetLastDateApplie
 
 - Page size 100 mails, 300 ms pause between pages, stop when there is no next page token.
 - For each page, read the metadata of each mail in groups of 20 concurrently, with a 200 ms pause between groups.
-- With a limit, stop as soon as enough mails are collected and cut the list to the limit.
+- With a limit, stop as soon as enough mails are collected and cut the list to the limit. The Rust version checks after each group of 20 instead of after each page, so it reads fewer mails than the old code and returns the same list (D48).
 - Each mail uses format `metadata` with headers `Date`, `From`, `Subject`.
-- Text cleaning: remove control and invisible characters, collapse whitespace, trim.
+- Text cleaning: remove every Unicode "other" character (`\p{C}`: controls such as tab and newline, format characters such as zero-width space, byte-order mark and bidi marks), collapse whitespace to single spaces, trim. A removed character leaves no space behind, like the old code (D48).
 - A mail is dropped silently if `From`, `Subject`, snippet or `Date` is empty after cleaning, if the date cannot be formatted, or if reading it fails.
 - Dates are converted to IST with the format `YYYY-MM-DDTHH:MM:SS+05:30`. The old code adds a fixed +5:30 offset to the parsed instant.
+- The `Date` header is read as RFC 2822 after dropping a trailing comment such as `(UTC)` and the weekday, so a wrong weekday does not reject the mail. Date text chrono cannot read (for example the zone name `UTC` without a number) drops the mail (D48, `ASSUMPTION`: checked only by tests, not against real mail).
 
 Gmail request details (`OBSERVED`: checked against Google's official documentation on 2026-11-07, `DECIDED` D4):
 
@@ -203,13 +204,13 @@ Credentials come from `[02sjobsData].[05spgetActiveGoogleOAuthCreds]` using `Goo
 3. Reverse the list so the oldest mail is first.
 4. Split into chunks of 100 (the last chunk may be smaller).
 5. For each chunk, in order: create a UUIDv7 `correlationId`, build the event (section 6), publish it to `JOBS_WRITE_TOPIC` through the gateway (section 7).
-6. If a publish fails, stop. Chunks already published stay published. Return the error response; the message states how many chunks were already published.
+6. If a publish fails, stop. Chunks already published stay published. Return the error response; the message is the catalogue message followed by `Chunks already published: N of M.` (D48).
 
 Success response (200):
 
 | Field | Value |
 | --- | --- |
-| `message` | Text stating the mode was accepted and that Azure and PostgreSQL processing is asynchronous. |
+| `message` | `<Mode> accepted. Write-model events published: <chunkCount>. Azure and PostgreSQL processing is asynchronous.` (D48) |
 | `data.correlationIds` | List of UUIDv7, oldest chunk first. |
 | `data.recordCount` | Total records across all chunks. |
 | `data.chunkCount` | Number of chunks published. |

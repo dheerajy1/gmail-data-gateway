@@ -2,7 +2,7 @@
 
 Owns the **order of work**: build phases, what each one delivers, and how to know it is finished. What the system does is in `SPEC.md` and `FEATURES.md`; why is in `DECISIONS.md`; how to run, verify and deliver a phase is in `BUILD.md`.
 
-Last updated: 2026-11-07
+Last updated: 2026-11-08
 
 ## Rules for all phases
 
@@ -14,7 +14,7 @@ Last updated: 2026-11-07
 - **Commit** happens only after the phase delivered and your verify passed. Commit text follows the format in `BUILD.md`.
 - **References** are re-read at the start of each phase. A pattern is copied only after reading the reference file again.
 - **Decisions** made during a phase are written to `DECISIONS.md` in the same phase.
-- **Status:** P1 is `VERIFIED` (2026-11-07: fmt, check, clippy and 16 tests pass on your machine, and `GET /api/v1/health` works on the Vercel preview). P2 is `VERIFIED` (2026-11-07: fmt, check, clippy and 64 tests pass on your machine; `cargo build-prod` and `cargo start` work; `GET /api/v1/health` answers through the dev tunnel). P3 is `VERIFIED` (2026-11-07: fmt, check, clippy and 90 tests pass on your machine; `cargo build-prod` and `cargo start` work; docs login sets the cookie, API login returns a token, and `GET /api/v1/health` reports the database UP against the real Azure database). P4 is `VERIFIED` (2026-11-07: fmt, check, clippy and 100 tests pass on your machine, including the fake gateway tests; the live check waits for P11). P5 is `VERIFIED` (2026-11-08: fmt, check, clippy and 132 tests pass on your machine; the real token refresh and the real `Sync` read moved to P6, where the route exists). P6 to P11 are `NOT STARTED`.
+- **Status:** P1 is `VERIFIED` (2026-11-07: fmt, check, clippy and 16 tests pass on your machine, and `GET /api/v1/health` works on the Vercel preview). P2 is `VERIFIED` (2026-11-07: fmt, check, clippy and 64 tests pass on your machine; `cargo build-prod` and `cargo start` work; `GET /api/v1/health` answers through the dev tunnel). P3 is `VERIFIED` (2026-11-07: fmt, check, clippy and 90 tests pass on your machine; `cargo build-prod` and `cargo start` work; docs login sets the cookie, API login returns a token, and `GET /api/v1/health` reports the database UP against the real Azure database). P4 is `VERIFIED` (2026-11-07: fmt, check, clippy and 100 tests pass on your machine, including the fake gateway tests; the live check waits for P11). P5 is `VERIFIED` (2026-11-08: fmt, check, clippy and 132 tests pass on your machine; the real token refresh and the real `Sync` read moved to P6, where the route exists). P6 is `VERIFIED` (2026-11-08: fmt, check, clippy and 157 tests pass on your machine; the manual checks below are still open). P7 to P11 are `NOT STARTED`.
 
 ## Phase map
 
@@ -120,6 +120,7 @@ Dependencies: P2 needs P1. P3 needs P2. P4 needs P1. P5 needs P3. P6 needs P4 an
   - A failure on chunk 2 stops the request, reports the published count and uses `KAFKA_GATEWAY_FAILED`.
 - **Manual checks (yours):** a small `Increment` run against the real mailbox and gateway, after P11's gateway prerequisite. Also the checks moved from P5: a token refresh against your real Google app and a `Sync` read against your real database.
 - **Risk to record:** the measured time of a `Bulk` run on Vercel (D2).
+- **Delivered and verified (2026-11-08):** `reader.rs`, `publisher.rs`, `handler.rs`, the extended `service.rs`, the route, the OpenAPI entry with error examples, `ApiError::with_message`, `gateway_target_from_env`, and the crates `uuid` and `regex` (D48, D49). The only failure in the first run was a test of mine: a request without client headers is redirected to `/login` by the access gate, so the handler never runs. Tests: `tests/extract_read.rs` (fake Gmail), `tests/extract_publish.rs` (fake gateway), `tests/extract_route.rs` (auth and 400 paths), two openapi tests, and unit tests in `reader.rs`. The route has no test that reaches real Gmail or the database (`CODING-STANDARDS.md` section 15 rule 11); the manual checks cover that.
 - **Commit scope suggestion:** `feat(extract)`.
 
 ## P7: Subscriber: runtime, models, retry

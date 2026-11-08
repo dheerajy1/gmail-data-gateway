@@ -7,7 +7,9 @@ use utoipa_scalar::{Scalar, Servable};
 use self::errors::ErrorExamples;
 
 use crate::{
-    features::v1::{auth::handler as auth, health::handler as health},
+    features::v1::{
+        auth::handler as auth, extract_mails::handler as extract, health::handler as health,
+    },
     schemas::response::ErrorResponse,
 };
 
@@ -18,7 +20,7 @@ const TITLE: &str = "Gmail data gateway API";
 #[derive(OpenApi)]
 #[openapi(
     info(title = "Gmail data gateway API", version = "v1"),
-    paths(auth::login, health::health),
+    paths(auth::login, extract::extract_mails, health::health),
     components(schemas(ErrorResponse)),
     modifiers(&ErrorExamples)
 )]

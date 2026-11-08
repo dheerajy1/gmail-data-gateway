@@ -2,7 +2,7 @@
 
 Owns the **why** behind material decisions. The current resulting state lives in `SPEC.md`.
 
-Last updated: 2026-11-07
+Last updated: 2026-11-08
 
 ## Status legend
 
@@ -571,6 +571,31 @@ Nothing in this file has been compiled or run. Everything marked as read was rea
   - New catalog entries: `GMAIL_SESSION_EXPIRED`, `NO_ACTIVE_CREDENTIALS`, `GMAIL_ACCESS_DENIED`, `GMAIL_RATE_LIMIT`, `NO_EMAIL_DATA`, `CLIENT_ID_NOT_FOUND`, `EXTRACT_FAILED`. Their message texts are new (`PROPOSED`).
   - Layout: `src/features/v1/extract_mails/` (model, query, service), `src/clients/gmail.rs`, `src/db/applied_jobs.rs`, `src/db/google_oauth.rs`. No route yet; the route comes in the phase that publishes.
 - **Affects:** SPEC sections 5.1 to 5.5, `src/errors/catalog.rs`, `src/db/*`, `src/clients/gmail.rs`, `src/features/v1/extract_mails/*`, `tests/gmail.rs`.
+
+## D48: P6 reading, chunked publish and the `extractMails` route
+
+- **Status:** `DECIDED` (2026-11-08, you approved the design). Details marked `PROPOSED` are my choices.
+- **Evidence (`OBSERVED`):** the old reading code in `jobs-api-gateway` (git history before the TypeScript removal): `\p{C}` removal then whitespace collapse, groups of 20, pauses of 300 ms and 200 ms, drop rules. Gateway reply rules are D21.
+- **Decisions:**
+  - Layout: `reader.rs` (paging, grouped reads, cleaning, IST dates), `publisher.rs` (chunks, events, UUIDv7), `handler.rs` (route), and `service.rs` ties them together. `publish_extract` takes the config and the gateway target as parameters so tests use a fake gateway.
+  - Route: `POST /api/v1/admin/extractMails`, protected by the `Auth` extractor (client headers and bearer token, any role like the old `Auth: true`).
+  - Concurrency: groups of 20 run on a `tokio::task::JoinSet`; results are put back in id order. No extra crate.
+  - Limit (`PROPOSED`): checked after each group, not each page. Same result list, fewer reads.
+  - Cleaning: same as the old code, so a removed control character leaves no space. The regex builds once; if it ever failed to build, cleaning falls back to removing `char::is_control` characters (no `expect`, `CODING-STANDARDS.md` section 15 rule 5). A unit test checks that it builds.
+  - Dates (`PROPOSED`): comment and weekday are dropped before parsing, to match the leniency of JavaScript `Date`. Anything still unreadable drops the mail.
+  - Publish: `records.reverse()` then chunks of 100; each chunk gets `Uuid::now_v7()`; the first failure stops the run. The error keeps `KAFKA_GATEWAY_FAILED` and its message gets ` Chunks already published: N of M.` added through the new `ApiError::with_message`.
+  - Gateway target: `gateway_target_from_env()` is split out of `post_to_gateway` so the service can pass it to the publisher.
+  - Response: as in SPEC section 5.6; message text is `PROPOSED`.
+- **Affects:** SPEC sections 5.3 and 5.6, `src/features/v1/extract_mails/*`, `src/clients/kafka_gateway.rs`, `src/errors/api_error.rs`, `src/openapi/*`, `tests/extract_*.rs`, `tests/openapi.rs`.
+
+## D49: New crates `uuid` and `regex` (P6)
+
+- **Status:** `DECIDED` (2026-11-08, you approved both).
+- **Decisions:**
+  - `uuid` 1 with feature `v7`: correlation ids are UUIDv7 (D3). Latest on crates.io when checked: 1.29.1.
+  - `regex` 1 with default features: the `\p{C}` character class of the cleaning rule needs Unicode category tables. Latest on crates.io when checked: 1.13.1.
+  - `futures` was not added; `tokio::task::JoinSet` covers the concurrent reads.
+- **Affects:** `Cargo.toml`, `Cargo.lock` (you regenerate it on your first cargo run).
 
 ---
 

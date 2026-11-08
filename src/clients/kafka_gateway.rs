@@ -86,21 +86,24 @@ fn gateway_error(detail: impl Display) -> ApiError {
     ApiError::from_entry(internal_server_error::KAFKA_GATEWAY_FAILED)
 }
 
-// Publishes one transport envelope to the gateway named in the env and validates its reply
-pub async fn post_to_gateway<T: Serialize>(
-    request: &GatewayPublishRequest<T>,
-) -> Result<GatewayPublishResponse, ApiError> {
+// Builds the gateway target from the env, the target of every real publish
+pub fn gateway_target_from_env() -> GatewayTarget<'static> {
     let env = env();
 
-    let target = GatewayTarget {
+    GatewayTarget {
         base_url: &env.onprem_server_url,
         client_id: &env.client_id,
         client_secret: &env.client_secret,
         api_key: &env.kafka_api_key,
         api_secret: &env.kafka_api_key_secret,
-    };
+    }
+}
 
-    post_to_gateway_at(&target, request).await
+// Publishes one transport envelope to the gateway named in the env and validates its reply
+pub async fn post_to_gateway<T: Serialize>(
+    request: &GatewayPublishRequest<T>,
+) -> Result<GatewayPublishResponse, ApiError> {
+    post_to_gateway_at(&gateway_target_from_env(), request).await
 }
 
 // Publishes one transport envelope to the given gateway and validates its reply (SPEC section 7)

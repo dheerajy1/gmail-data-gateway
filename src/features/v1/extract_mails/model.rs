@@ -1,11 +1,11 @@
 use chrono::{FixedOffset, NaiveDate, TimeZone};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
 use crate::errors::{api_error::ApiError, catalog::bad_request};
 
 // India time is a fixed +05:30 offset, a date-only input means midnight in that offset (D47)
-const IST_OFFSET_SECONDS: i32 = 19_800;
+pub(super) const IST_OFFSET_SECONDS: i32 = 19_800;
 
 // The three extract modes (SPEC section 5.1)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, ToSchema)]
@@ -13,6 +13,17 @@ pub enum ExtractType {
     Bulk,
     Increment,
     Sync,
+}
+
+impl ExtractType {
+    // Name of the mode as the client sends it
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Bulk => "Bulk",
+            Self::Increment => "Increment",
+            Self::Sync => "Sync",
+        }
+    }
 }
 
 // Body of POST /api/v1/admin/extractMails (SPEC section 5.1)
@@ -34,6 +45,23 @@ pub struct ExtractMailsRequest {
 
     // End date as YYYY/M/D, Increment mode only
     pub input_date_before: Option<String>,
+}
+
+// Data part of the extractMails success response (SPEC section 5.6)
+#[derive(Debug, Serialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct ExtractMailsData {
+    // Correlation id of each published chunk, oldest chunk first
+    pub correlation_ids: Vec<String>,
+
+    // Total records across all chunks
+    pub record_count: usize,
+
+    // Number of chunks published
+    pub chunk_count: usize,
+
+    // ACCEPTED, or NO_NEW_RECORDS when nothing was found
+    pub status: String,
 }
 
 // True when the text is only ascii digits

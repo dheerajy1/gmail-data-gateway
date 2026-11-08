@@ -9,7 +9,8 @@ use utoipa::{
 };
 
 use crate::errors::catalog::{
-    CatalogEntry, bad_request, internal_server_error, service_unavailable, unauthorized,
+    CatalogEntry, bad_request, forbidden, internal_server_error, not_found, service_unavailable,
+    too_many_requests, unauthorized,
 };
 
 // Errors documented per operation, keyed by the operation id set in the handler annotation
@@ -22,6 +23,28 @@ const OPERATION_ERRORS: &[(&str, &[CatalogEntry])] = &[
             bad_request::INVALID_HEADER_VALUES,
             bad_request::INVALID_INPUT,
             internal_server_error::TOKEN_SIGNING_FAILED,
+            internal_server_error::DATABASE_ERROR,
+            internal_server_error::SERVER_ERROR,
+        ],
+    ),
+    (
+        "extract_mails",
+        &[
+            unauthorized::MISSING_AUTH_HEADERS,
+            unauthorized::MISSING_AUTHORIZATION_TOKEN,
+            unauthorized::EXPIRED_TOKEN,
+            unauthorized::INVALID_TOKEN,
+            unauthorized::MISSING_SUB_OR_ROLE,
+            unauthorized::GMAIL_SESSION_EXPIRED,
+            unauthorized::NO_ACTIVE_CREDENTIALS,
+            bad_request::INVALID_HEADER_VALUES,
+            bad_request::INVALID_INPUT,
+            forbidden::GMAIL_ACCESS_DENIED,
+            not_found::NO_EMAIL_DATA,
+            not_found::CLIENT_ID_NOT_FOUND,
+            too_many_requests::GMAIL_RATE_LIMIT,
+            internal_server_error::KAFKA_GATEWAY_FAILED,
+            internal_server_error::EXTRACT_FAILED,
             internal_server_error::DATABASE_ERROR,
             internal_server_error::SERVER_ERROR,
         ],

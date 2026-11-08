@@ -77,6 +77,7 @@
 ├── src/
 │   ├── app.rs
 │   ├── clients/
+│   │   ├── gmail.rs
 │   │   ├── kafka_gateway.rs
 │   │   └── mod.rs
 │   ├── components/
@@ -95,7 +96,9 @@
 │   │   └── mod.rs
 │   ├── db/
 │   │   ├── api_users.rs
+│   │   ├── applied_jobs.rs
 │   │   ├── azure.rs
+│   │   ├── google_oauth.rs
 │   │   ├── mod.rs
 │   │   └── portal_users.rs
 │   ├── errors/
@@ -113,6 +116,14 @@
 │   │       │   ├── jwt.rs
 │   │       │   ├── mod.rs
 │   │       │   ├── model.rs
+│   │       │   └── service.rs
+│   │       ├── extract_mails/
+│   │       │   ├── handler.rs
+│   │       │   ├── mod.rs
+│   │       │   ├── model.rs
+│   │       │   ├── publisher.rs
+│   │       │   ├── query.rs
+│   │       │   ├── reader.rs
 │   │       │   └── service.rs
 │   │       ├── health/
 │   │       │   ├── handler.rs
@@ -156,8 +167,12 @@
 │   ├── cors.rs
 │   ├── env.rs
 │   ├── errors.rs
+│   ├── extract_publish.rs
+│   ├── extract_read.rs
+│   ├── extract_route.rs
 │   ├── gate.rs
 │   ├── gateway.rs
+│   ├── gmail.rs
 │   ├── health.rs
 │   ├── login.rs
 │   └── openapi.rs
@@ -167,4 +182,4 @@
     └── src/
         └── main.rs
 
-37 directories, 129 files
+38 directories, 143 files
