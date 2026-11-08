@@ -46,7 +46,7 @@ Nothing in this file has been compiled or run. Everything marked as read was rea
 | D13 | The environment variable is `APP_ENV` | `DECIDED` |
 | D14 | `generate-token` requests the `gmail.readonly` and `drive` scopes | `DECIDED` (against recommendation) |
 | D15 | Code phases try to install the Rust toolchain and run `cargo check` and `cargo test` | `DECIDED` |
-| D16 | Each phase is delivered as one full-repo tarball | `DECIDED` |
+| D16 | Each phase is delivered as one full-repo tarball with exclusion `.git`, `target`, `Cargo.lock`, `public/global.css` and `structure.txt` from tarballs.  | `DECIDED` |
 | D17 | Phases are cut by feature and pattern, with no cap on changes | `DECIDED` |
 | D18 | Database scripts stay unchanged unless an error shows a change is needed | `DECIDED` |
 | D19 | Only error catalog entries the Rust code uses are ported | `DECIDED` |

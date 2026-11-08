@@ -160,11 +160,13 @@ The tarball has no `.git`, so your own git history stays untouched. It contains 
 
 ### Create the delivery tarball (Claude runs this)
 
-```
-tar --exclude='./target' --exclude='./.git' -czf <phase-name>.tar.gz -C <repo-parent> <repo-name>
+Each phase is delivered as one full-repo tarball, excluding `.git`, `target` (at every level), `Cargo.lock`, `public/global.css`, and `structure.txt`.
+
+```bash
+tar --exclude='.git' --exclude='target' --exclude='Cargo.lock' --exclude='public/global.css' --exclude='structure.txt' -czf <phase-name>.tar.gz -C <repo-parent> <repo-name>
 ```
 
-This pattern is a template (`PROPOSED`). The exact exclusions are re-checked each phase so that `target` is excluded at every level and `.env*` files stay in.
+This pattern is a template (`PROPOSED`) (D16). The exact exclusions are re-checked each phase so that `target` is excluded at every level and `.env*` files stay in.
 
 ## 9. Commit rules
 
