@@ -159,6 +159,21 @@
 │   ├── security.rs
 │   └── tailwind.css
 ├── structure.txt
+├── subscriber/
+│   ├── Cargo.toml
+│   ├── src/
+│   │   ├── event.rs
+│   │   ├── failure.rs
+│   │   ├── gateway.rs
+│   │   ├── lib.rs
+│   │   ├── main.rs
+│   │   ├── retry.rs
+│   │   ├── status.rs
+│   │   ├── topics.rs
+│   │   └── transport.rs
+│   └── tests/
+│       ├── gateway_ws.rs
+│       └── publish_flow.rs
 ├── tests/
 │   ├── auth.rs
 │   ├── auth_extractor.rs
@@ -182,4 +197,4 @@
     └── src/
         └── main.rs
 
-38 directories, 143 files
+41 directories, 155 files

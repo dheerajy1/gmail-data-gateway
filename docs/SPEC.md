@@ -258,9 +258,24 @@ Failure handling: any non-2xx status, a non-JSON body, or a reply that fails val
 
 ## 8. Subscriber
 
-### 8.1 Connection (`FACT` for the old behavior, `PROPOSED` to copy the recordlog Rust transport)
+### 8.1 Connection (`FACT` from the recordlog Rust subscriber, read 2026-11-08; the jobs file is identical to the old recordlog file)
 
-One process, one authenticated WebSocket to the gateway, three subscribed topics, identity sent as `x-subscriber-id` from `SOURCE_CLIENT_ID`. The gateway-WebSocket files in the old repos for recordlog and jobs are identical (`FACT`, file comparison), so the recordlog Rust `transport.rs` is the model. The exact WebSocket path, frame types and acknowledgement frame are `UNKNOWN` here and must be read from `subscriber/src/transport.rs` in the build phase.
+One process, one authenticated WebSocket to the gateway, three subscribed topics (`JOBS_WRITE_TOPIC`, `JOBS_READ_TOPIC`, `JOBS_STATUS_TOPIC`).
+
+- **URL:** `ONPREM_SERVER_URL` with `http` turned into `ws` and `https` into `wss`, plus `/api/v1/ws-subscribe`.
+- **Handshake headers:** `x-client-id`, `x-client-secret`, `x-api-key` (`KAFKA_API_KEY`), `x-api-secret` (`KAFKA_API_KEY_SECRET`), `x-subscriber-id` (`SOURCE_CLIENT_ID`).
+- **Frames from the subscriber:**
+  - `{"type":"subscribe","topic":...}`, one per topic, sent right after the connection opens.
+  - `{"type":"publish","requestId":...,"topic":...,"key"?:...,"value":...,"headers"?:{...}}`. `requestId` is a UUIDv7 used only to match the answer. The publish waits at most 30 seconds.
+  - `{"type":"processed","correlationId":...}`, the acknowledgement after an event is fully handled.
+- **Frames from the gateway:**
+  - `ready` and `subscribed` (logged only).
+  - `event`: `topic`, `headers` (string values only), `partition`, `offset` (string or number, kept as text), and the rest of the frame is the payload.
+  - `published` with a `requestId`: the publish succeeded.
+  - `error` with a `requestId`: the publish failed with `reason` (or `message`). An `error` without a `requestId` is logged only.
+- **Reconnect:** after a connect failure or a closed connection the delay is 2 s doubling to a maximum of 30 s, reset by a successful connect. Publishes still waiting when the socket closes fail at once.
+- **Concurrency:** each event is handled on its own task.
+- **Shutdown:** SIGINT or SIGTERM ends the process.
 
 ### 8.2 Handlers (`FACT`)
 

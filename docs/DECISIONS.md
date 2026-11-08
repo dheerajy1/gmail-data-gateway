@@ -597,6 +597,34 @@ Nothing in this file has been compiled or run. Everything marked as read was rea
   - `futures` was not added; `tokio::task::JoinSet` covers the concurrent reads.
 - **Affects:** `Cargo.toml`, `Cargo.lock` (you regenerate it on your first cargo run).
 
+## D50: P7 subscriber design
+
+- **Status:** `DECIDED` (2026-11-08, you approved the design and then the xtask aliases for P7).
+- **Evidence (`OBSERVED`):** the recordlog Rust subscriber (`transport.rs`, `gateway.rs`, `main.rs`, `event.rs`, `status.rs`, `retry.rs`, `failure.rs`, `time.rs`), read in full on 2026-11-08. SPEC section 8.1 now records the frames.
+- **Decisions:**
+  - A workspace member `subscriber` (library plus the `subscriber` binary), depending on the root crate for `env` and `logging`. The library lets integration tests use a fake gateway.
+  - Logging goes through `tracing` with the root crate's formatter, not `println!` as in recordlog.
+  - No `expect` on the pending-publish lock; a poisoned lock is still used.
+  - `GatewayConfig` (URL plus the five header values) and `Backoff` are parameters, so tests run against a fake WebSocket gateway built with `axum` (`ws` feature, dev-dependency) with a 10 ms backoff.
+  - `publish_status` and the failure helpers take the topic names as parameters; `Topics::from_env` reads them from the env.
+  - The retry header is `x-jobs-retry-count`. The recordlog header is not read.
+  - Error text from event validation never echoes values, so mail content cannot reach a log (rule 4); unknown frames are logged by type only.
+  - No handlers in P7: `main` classifies the topic and logs, and nothing is acknowledged until P8.
+  - The three subscriber aliases (`dev-subscriber`, `start-subscriber`, `build-subscriber`) are added now, as BUILD.md section 2 lists them under P7.
+- **Corrected during the build:** the status stage and status names were first written from memory and were wrong; they now match SPEC section 6 (`RECEIVED` to `COMPLETED`, `FAILED`; `STARTED`, `SUCCEEDED`, `FAILED`).
+- **Affects:** `subscriber/*`, `Cargo.toml` (workspace members), `xtask/src/main.rs`, `.cargo/config.toml`, SPEC section 8.1.
+
+## D51: New crates for the subscriber (P7)
+
+- **Status:** `DECIDED` (2026-11-08, you approved them with the design).
+- **Decisions:**
+  - `tokio-tungstenite` 0.28 with `connect` and `rustls-tls-webpki-roots`, the version recordlog's code was written against (latest on crates.io when checked: 0.30.0, not adopted to keep the same API and TLS setup).
+  - `futures-util` 0.3 for the websocket stream and sink.
+  - `axum` 0.8 with the `ws` feature as a dev-dependency of `subscriber` only (fake gateway in tests).
+  - `tracing`, `serde`, `serde_json`, `uuid`, `chrono` and `tokio` are already used by the root crate.
+  - `sqlx` is not added; it belongs to P8.
+- **Affects:** `subscriber/Cargo.toml`, `Cargo.lock`.
+
 ---
 
 

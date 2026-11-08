@@ -14,7 +14,7 @@ Last updated: 2026-11-08
 - **Commit** happens only after the phase delivered and your verify passed. Commit text follows the format in `BUILD.md`.
 - **References** are re-read at the start of each phase. A pattern is copied only after reading the reference file again.
 - **Decisions** made during a phase are written to `DECISIONS.md` in the same phase.
-- **Status:** P1 is `VERIFIED` (2026-11-07: fmt, check, clippy and 16 tests pass on your machine, and `GET /api/v1/health` works on the Vercel preview). P2 is `VERIFIED` (2026-11-07: fmt, check, clippy and 64 tests pass on your machine; `cargo build-prod` and `cargo start` work; `GET /api/v1/health` answers through the dev tunnel). P3 is `VERIFIED` (2026-11-07: fmt, check, clippy and 90 tests pass on your machine; `cargo build-prod` and `cargo start` work; docs login sets the cookie, API login returns a token, and `GET /api/v1/health` reports the database UP against the real Azure database). P4 is `VERIFIED` (2026-11-07: fmt, check, clippy and 100 tests pass on your machine, including the fake gateway tests; the live check waits for P11). P5 is `VERIFIED` (2026-11-08: fmt, check, clippy and 132 tests pass on your machine; the real token refresh and the real `Sync` read moved to P6, where the route exists). P6 is `VERIFIED` (2026-11-08: fmt, check, clippy and 157 tests pass on your machine; the manual checks below are still open). P7 to P11 are `NOT STARTED`.
+- **Status:** P1 is `VERIFIED` (2026-11-07: fmt, check, clippy and 16 tests pass on your machine, and `GET /api/v1/health` works on the Vercel preview). P2 is `VERIFIED` (2026-11-07: fmt, check, clippy and 64 tests pass on your machine; `cargo build-prod` and `cargo start` work; `GET /api/v1/health` answers through the dev tunnel). P3 is `VERIFIED` (2026-11-07: fmt, check, clippy and 90 tests pass on your machine; `cargo build-prod` and `cargo start` work; docs login sets the cookie, API login returns a token, and `GET /api/v1/health` reports the database UP against the real Azure database). P4 is `VERIFIED` (2026-11-07: fmt, check, clippy and 100 tests pass on your machine, including the fake gateway tests; the live check waits for P11). P5 is `VERIFIED` (2026-11-08: fmt, check, clippy and 132 tests pass on your machine; the real token refresh and the real `Sync` read moved to P6, where the route exists). P6 is `VERIFIED` (2026-11-08: fmt, check, clippy and 157 tests pass on your machine; the manual checks below are still open). P7 is `VERIFIED` (2026-11-08: fmt, check, clippy and 207 tests pass on your machine, and `cargo build-prod` and `cargo start` still work). P8 to P11 are `NOT STARTED`.
 
 ## Phase map
 
@@ -127,12 +127,14 @@ Dependencies: P2 needs P1. P3 needs P2. P4 needs P1. P5 needs P3. P6 needs P4 an
 
 - **Goal:** The subscriber process connects to the gateway and handles events through validation, retry and dead letter.
 - **Features:** F30, F31.
-- **Reference:** `subscriber/src/*` in `recordlog-api-rust`. Read `transport.rs` and `gateway.rs` first for the frame details (`UNKNOWN` until read).
-- **Includes:** add the `subscriber` member to the workspace.
+- **Reference:** `subscriber/src/*` in `recordlog-api-rust`, read in full on 2026-11-08 (frames are now in `SPEC.md` section 8.1).
+- **Includes:** add the `subscriber` member to the workspace, and (moved from P9 on your decision, D50) the aliases `dev-subscriber`, `start-subscriber` and `build-subscriber`.
 - **Exit criteria:**
   - Connect, subscribe to three topics, reconnect on a dropped connection.
   - Event and status validation match `SPEC.md` section 6.
   - Retry increments `x-jobs-retry-count`; at 3 the message goes to the dead-letter topic with the listed headers.
+- **Delivered and verified (2026-11-08):** the `subscriber` crate with `transport.rs`, `gateway.rs`, `event.rs`, `status.rs`, `retry.rs`, `failure.rs`, `topics.rs`, `main.rs`; tests in `subscriber/tests/gateway_ws.rs` (fake WebSocket gateway: headers, three subscribes, event delivery, publish ack and error, processed ack, reconnect) and `subscriber/tests/publish_flow.rs` (retry, dead letter, status), plus unit tests in the modules. `main` only classifies and logs; handlers are P8 (D50, D51). The first build failed on two compile errors of mine in `gateway.rs` (`Value` inside `tracing` macros); fixed.
+- **Manual check (moved to P8):** the real WebSocket connection is checked together with the real-database run of P8. Reason: with no handlers nothing is acknowledged, and a real connection with the same `SOURCE_CLIENT_ID` as a still-running old subscriber could disturb its consumer group.
 - **Commit scope suggestion:** `feat(subscriber)`.
 
 ## P8: Subscriber: handlers
