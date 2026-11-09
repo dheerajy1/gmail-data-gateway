@@ -1,4 +1,6 @@
+mod extract_mails;
 mod gen_token;
+mod quiet;
 
 use std::env;
 use std::path::PathBuf;
@@ -6,10 +8,12 @@ use std::process::{Command, exit};
 
 use jobs_api_gateway::config::env::Env;
 
+use quiet::Show;
+
 fn main() {
     let task = env::args().nth(1).unwrap_or_else(|| {
         eprintln!(
-            "Usage: cargo <css|dev|start|preview|build-prod|dev-subscriber|start-subscriber|build-subscriber|gen-token|docker-*>"
+            "Usage: cargo <css|dev|start|preview|build-prod|dev-subscriber|start-subscriber|build-subscriber|gen-token|extract-mails|verify|docker-*>"
         );
         exit(1);
     });
@@ -24,6 +28,11 @@ fn main() {
         "start-subscriber" => run_subscriber("production", true),
         "build-subscriber" => run_build_subscriber(),
         "gen-token" => gen_token::run(load_env("production").google_appid),
+        "extract-mails" => {
+            load_env("development");
+            extract_mails::run(&env::args().skip(2).collect::<Vec<_>>());
+        }
+        "verify" => run_verify(),
         "docker" => run_docker(env::args().nth(2)),
         _ => {
             eprintln!("Unknown task: {task}");
@@ -68,12 +77,11 @@ fn run_server(profile: &str, release: bool) {
         env.app_port
     );
 
-    let mut cmd = Command::new("cargo");
-    cmd.args(["run", "--package", "jobs-api-gateway"]);
+    build_quiet(&package_args("build", "jobs-api-gateway", release));
 
-    if release {
-        cmd.arg("--release");
-    }
+    let mut cmd = Command::new("cargo");
+    cmd.args(package_args("run", "jobs-api-gateway", release));
+    cmd.arg("--quiet");
 
     // Passes the validated port to the server process
     cmd.env("VERCEL_DEV_PORT", env.app_port.to_string());
@@ -93,12 +101,7 @@ fn run_build() {
 
     run_css();
 
-    let status = Command::new("cargo")
-        .args(["build", "--release", "--package", "jobs-api-gateway"])
-        .status()
-        .expect("Failed to execute cargo build for jobs-api-gateway");
-
-    exit(status.code().unwrap_or(1));
+    build_quiet(&package_args("build", "jobs-api-gateway", true));
 }
 
 // Loads and validates the env file for the profile, then runs the subscriber
@@ -110,12 +113,11 @@ fn run_subscriber(profile: &str, release: bool) {
         if release { "production" } else { "development" }
     );
 
-    let mut cmd = Command::new("cargo");
-    cmd.args(["run", "--package", "subscriber"]);
+    build_quiet(&package_args("build", "subscriber", release));
 
-    if release {
-        cmd.arg("--release");
-    }
+    let mut cmd = Command::new("cargo");
+    cmd.args(package_args("run", "subscriber", release));
+    cmd.arg("--quiet");
 
     let status = cmd
         .status()
@@ -128,16 +130,9 @@ fn run_subscriber(profile: &str, release: bool) {
 fn run_build_subscriber() {
     load_env("production");
 
-    let status = Command::new("cargo")
-        .args(["build", "--release", "--package", "subscriber"])
-        .status()
-        .expect("Failed to execute cargo build for subscriber");
+    build_quiet(&package_args("build", "subscriber", true));
 
-    if status.success() {
-        println!("-> Binary: target/release/subscriber");
-    }
-
-    exit(status.code().unwrap_or(1));
+    println!("-> Binary: target/release/subscriber");
 }
 
 // Path of the compose file, found from the xtask folder so it works from any directory
@@ -201,4 +196,75 @@ fn clear_docker_logs() {
         .expect("Failed to clear the docker logs");
 
     exit(status.code().unwrap_or(1));
+}
+
+// Builds the argument list of a cargo command for one package, in release mode when asked
+fn package_args(command: &str, package: &str, release: bool) -> Vec<String> {
+    let mut args = vec![
+        command.to_string(),
+        "--package".to_string(),
+        package.to_string(),
+    ];
+
+    if release {
+        args.push("--release".to_string());
+    }
+
+    args
+}
+
+// Runs one cargo command with the one-line progress, exits with 1 when it fails
+fn run_step(args: &[String], show: Show) {
+    let mut cmd = Command::new("cargo");
+    cmd.args(args);
+
+    match quiet::run(&cmd, show) {
+        Ok(true) => {}
+        Ok(false) => exit(1),
+        Err(error) => {
+            eprintln!("Failed to run cargo: {error}");
+            exit(1);
+        }
+    }
+}
+
+// Builds with one overwritten progress line instead of a Compiling line per crate
+fn build_quiet(args: &[String]) {
+    run_step(args, Show::All);
+}
+
+// Runs the verify sequence of docs/BUILD.md section 3: fmt, check, clippy and test of the whole workspace
+fn run_verify() {
+    let steps: [(&str, Vec<&str>, Show); 4] = [
+        ("cargo fmt", vec!["fmt"], Show::All),
+        (
+            "cargo check",
+            vec!["check", "--workspace", "--all-targets"],
+            Show::All,
+        ),
+        (
+            "cargo clippy",
+            vec![
+                "clippy",
+                "--workspace",
+                "--all-targets",
+                "--locked",
+                "--",
+                "-D",
+                "warnings",
+            ],
+            Show::All,
+        ),
+        ("cargo test", vec!["test", "--workspace"], Show::TestSummary),
+    ];
+
+    for (label, args, show) in steps {
+        println!("-> {label}");
+
+        let args: Vec<String> = args.into_iter().map(str::to_string).collect();
+
+        run_step(&args, show);
+    }
+
+    println!("-> verify passed");
 }

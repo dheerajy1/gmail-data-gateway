@@ -71,6 +71,14 @@ Run these in order from the repository root. `cargo fmt` rewrites files, so a ru
 cargo fmt && cargo check --workspace --all-targets 2>&1 | grep -Ev '^( *Compiling| *Checking [^ ]+ v[^ ]+$)' && cargo clippy --workspace --all-targets --locked -- -D warnings && cargo test --workspace 2>&1 | grep -P '^(?!.*SIGTERM).*(Finished|Running|test result|FAILED|panicked|Doc-tests|^error(\[E\d+\])?:)'
 ```
 
+### The same sequence in one command
+
+```
+cargo verify
+```
+
+It runs `cargo fmt`, `cargo check`, `cargo clippy` and `cargo test` in that order and stops at the first failure. The compiler progress shows as one line that is overwritten, and warnings and errors still print.
+
 ### Build the production binary with filtered output
 
 ```

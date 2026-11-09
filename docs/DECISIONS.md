@@ -653,6 +653,26 @@ Nothing in this file has been compiled or run. Everything marked as read was rea
   - `README.md` and `proj-flowchart.txt` are rewritten for the Rust workspace. `CHANGELOG.md` is written by semantic-release, so it is not edited by hand. `structure.txt` is not regenerated here because the command that builds it is `UNKNOWN`.
 - **Affects:** `docker/*`, `.dockerignore`, `.github/workflows/release.yml`, `xtask/src/main.rs`, `.cargo/config.toml`, `README.md`, `proj-flowchart.txt`.
 
+## D55: `cargo extract-mails` for live checks
+
+- **Status:** `DECIDED` (2026-11-09, you asked for a command that skips the token auth so a few mails can be tested in P11).
+- **Decisions:**
+  - `cargo extract-mails <Bulk|Increment|Sync> "<gmail query>" [--count N] [--after YYYY/M/D] [--before YYYY/M/D]` calls the same `extract_mails` service as the route, without the HTTP route, client headers or JWT.
+  - It always loads `.env.development`, so test data goes to the development schemas.
+  - It prints the status, record count, chunk count and the correlation ids. The arguments follow the request body of SPEC section 5.1 and the same validation applies.
+- **Affects:** `xtask/src/extract_mails.rs`, `xtask/src/main.rs`, `.cargo/config.toml`, `README.md`.
+
+## D56: One-line build progress and `cargo verify`
+
+- **Status:** `DECIDED` (2026-11-09, you asked for the compile output to show on one overwritten line for every alias).
+- **Decisions:**
+  - The `xtask` alias runs `cargo run --quiet`, so building `xtask` itself prints nothing unless it fails. This hides the first compile of the tool, which can take a while; a warning or error still shows.
+  - `dev`, `start`, `preview`, `build-prod`, `dev-subscriber`, `start-subscriber` and `build-subscriber` first build with `quiet::run`, then start the program with `cargo run --quiet`. `quiet::run` shows `Compiling <crate>` on one overwritten line and keeps every other line, so warnings, errors and `Finished` print.
+  - `cargo verify` runs fmt, check, clippy and test in order and stops at the first failure. The test step shows only the summary lines of your old grep filter (Finished, Running, test result, FAILED, panicked, Doc-tests, errors, no SIGTERM lines).
+  - The `docker-*` aliases are unchanged because Docker draws its own progress.
+  - The old long commands in `docs/BUILD.md` stay valid.
+- **Affects:** `xtask/src/quiet.rs`, `xtask/src/main.rs`, `.cargo/config.toml`, `docs/BUILD.md`, `README.md`.
+
 ---
 
 

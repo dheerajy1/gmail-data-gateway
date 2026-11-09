@@ -132,6 +132,7 @@ Also required: Azure SQL, on-prem PostgreSQL, Kafka Gateway auth and JWT/client 
 | Cargo Command | WD | Description |
 | --- | --- | --- |
 | `cargo fmt` | `~/dev/vs-code/jobs-api-gateway-rust` | Formats all code. |
+| `cargo verify` | `~/dev/vs-code/jobs-api-gateway-rust` | Runs fmt, check, clippy and test of the whole workspace with one overwritten progress line. Stops at the first failure. |
 | `cargo check --workspace --all-targets` | `~/dev/vs-code/jobs-api-gateway-rust` | Type-checks the API, the subscriber and xtask without building. |
 | `cargo clippy --workspace --all-targets --locked -- -D warnings` | `~/dev/vs-code/jobs-api-gateway-rust` | Lints the whole workspace and fails on any warning. |
 | `cargo test --workspace` | `~/dev/vs-code/jobs-api-gateway-rust` | Runs all tests. No real database, gateway or Google call is needed. |
@@ -145,6 +146,7 @@ Also required: Azure SQL, on-prem PostgreSQL, Kafka Gateway auth and JWT/client 
 | `cargo build-subscriber` | `~/dev/vs-code/jobs-api-gateway-rust` | Validates `.env.production` and builds the subscriber as one standalone binary: `target/release/subscriber`. |
 | `cargo start-subscriber` | `~/dev/vs-code/jobs-api-gateway-rust` | Validates `.env.production` and runs the release subscriber. |
 | `cargo gen-token` | `~/dev/vs-code/jobs-api-gateway-rust` | Loads `.env.production`, prints the Google consent URL, reads the pasted code and stores the refresh token. The token is shown masked. |
+| `cargo extract-mails <Bulk\|Increment\|Sync> "<query>" [--count N] [--after YYYY/M/D] [--before YYYY/M/D]` | `~/dev/vs-code/jobs-api-gateway-rust` | Loads `.env.development`, reads Gmail and publishes to the gateway like the extractMails route, without the HTTP route, client headers or JWT. Prints the status, counts and correlation ids. |
 | `cargo clean` | `~/dev/vs-code/jobs-api-gateway-rust` | Deletes the `target/` folder. |
 
 ### Docker Operations
