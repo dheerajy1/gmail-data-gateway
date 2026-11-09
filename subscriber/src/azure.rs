@@ -2,7 +2,7 @@ use jobs_api_gateway::db::azure::service_pool;
 use serde::Deserialize;
 use uuid::Uuid;
 
-use crate::event::JobRecord;
+use crate::event::{AzureWriteRange, JobRecord};
 
 // Notes the write-model stored procedure returns as json (SPEC section 9.1)
 #[derive(Debug, Clone, Deserialize)]
@@ -14,6 +14,24 @@ pub struct WriteModelNotes {
     // True when the same correlation id was already written
     #[serde(default)]
     pub replayed: bool,
+
+    // First Azure id inserted, absent when no row was inserted or on a replay
+    #[serde(default)]
+    pub from_id: Option<i32>,
+
+    // Last Azure id inserted, absent when no row was inserted or on a replay
+    #[serde(default)]
+    pub to_id: Option<i32>,
+}
+
+impl WriteModelNotes {
+    // The Azure id range of the insert, only when both ends are there
+    pub fn azure_write(&self) -> Option<AzureWriteRange> {
+        Some(AzureWriteRange {
+            from_id: self.from_id?,
+            to_id: self.to_id?,
+        })
+    }
 }
 
 // The procedure name goes into the SQL text, so only safe characters are allowed (SPEC section 9.2)
@@ -143,5 +161,39 @@ mod tests {
     #[test]
     fn rejects_notes_without_rows_inserted() {
         assert!(serde_json::from_str::<WriteModelNotes>(r#"{"replayed": false}"#).is_err());
+    }
+
+    // The id range is read from the notes when the procedure inserted rows
+    #[test]
+    fn notes_give_the_azure_range() {
+        let Ok(notes) = serde_json::from_str::<WriteModelNotes>(
+            r#"{"rowsInserted": 3, "fromId": 295, "toId": 297, "replayed": false}"#,
+        ) else {
+            panic!("notes should parse");
+        };
+
+        assert_eq!(
+            notes.azure_write(),
+            Some(AzureWriteRange {
+                from_id: 295,
+                to_id: 297
+            })
+        );
+    }
+
+    // No range when no row was inserted, when the notes come from a replay or when one end is missing
+    #[test]
+    fn notes_without_ids_give_no_range() {
+        let Ok(empty) = serde_json::from_str::<WriteModelNotes>(r#"{"rowsInserted": 0}"#) else {
+            panic!("notes should parse");
+        };
+        let Ok(half) =
+            serde_json::from_str::<WriteModelNotes>(r#"{"rowsInserted": 1, "fromId": 4}"#)
+        else {
+            panic!("notes should parse");
+        };
+
+        assert_eq!(empty.azure_write(), None);
+        assert_eq!(half.azure_write(), None);
     }
 }

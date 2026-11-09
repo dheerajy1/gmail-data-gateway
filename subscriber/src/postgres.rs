@@ -7,7 +7,7 @@ use sqlx::{
     postgres::{PgConnectOptions, PgPoolOptions, PgSslMode},
 };
 
-use crate::event::JobRecord;
+use crate::event::{AzureWriteRange, JobRecord};
 
 // Most connections the pool opens
 const MAX_CONNECTIONS: u32 = 5;
@@ -80,6 +80,7 @@ pub async fn execute_read_model(
     procedure_name: &str,
     correlation_id: &str,
     records: &[JobRecord],
+    azure_write: Option<AzureWriteRange>,
 ) -> Result<ReadModelResult, String> {
     let procedure = assert_procedure_name(procedure_name)?;
     let records_json = serde_json::to_string(records).map_err(|error| error.to_string())?;
@@ -88,11 +89,14 @@ pub async fn execute_read_model(
 
     // The procedure name passed assert_procedure_name, so the SQL text is safe (sqlx 0.9 needs that said)
     // The casts go through text so plain strings can be bound, the three NULLs are the OUT parameters
+    // The Azure id range is NULL when the write stage gave none, then azure_id stays NULL until the Azure sync
     let row = sqlx::query(AssertSqlSafe(format!(
-        "CALL {procedure}($1::text::uuid, $2::text::jsonb, NULL, NULL, NULL)"
+        "CALL {procedure}($1::text::uuid, $2::text::jsonb, $3::int, $4::int, NULL, NULL, NULL)"
     )))
     .bind(correlation_id)
     .bind(records_json)
+    .bind(azure_write.map(|range| range.from_id))
+    .bind(azure_write.map(|range| range.to_id))
     .fetch_one(&mut *transaction)
     .await
     .map_err(|error| error.to_string())?;

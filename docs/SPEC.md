@@ -231,6 +231,7 @@ Kafka message value for the write-model and read-model topics:
 | `job.readModel` | Non-empty. PostgreSQL procedure name, default `sp_kafka_apply_committed_records`. |
 | `sourceClientId` | Non-empty. From `SOURCE_CLIENT_ID`. |
 | `records` | At least 1 item. Each item has non-empty `id`, `date`, `from`, `subject`, `snippet`. |
+| `azureWrite` | Optional. `{ fromId, toId }`, whole numbers with `1 <= fromId <= toId`. Set by the write-model handler on the event it publishes to the read-model topic (D57); the API never sets it. |
 
 Status event (topic `JOBS_STATUS_TOPIC`):
 
@@ -286,7 +287,7 @@ One process, one authenticated WebSocket to the gateway, three subscribed topics
 3. Publish status `AZURE_WRITE_STARTED` / `STARTED`.
 4. Call the Azure procedure (section 9.1).
 5. Publish status `AZURE_WRITE_SUCCEEDED` / `SUCCEEDED` (with `rowsInserted` and `replayed`).
-6. Publish the same event to `JOBS_READ_TOPIC`, key `correlationId`.
+6. Publish the same event to `JOBS_READ_TOPIC`, key `correlationId`, with `azureWrite` set from the notes `fromId` and `toId` (left out when the notes have none, for example on a replay or when no row was inserted).
 7. Acknowledge the message.
 
 **Read-model** (topic `JOBS_READ_TOPIC`):
@@ -322,7 +323,7 @@ Note: recordlog uses the header `x-record-log-retry-count`; jobs keeps `x-jobs-r
 
 | Object | Contract |
 | --- | --- |
-| `[02sjobsData].[02spinsertRawAppliedJobs]` | Inputs `@correlationId` (UNIQUEIDENTIFIER) and `@input` (NVARCHAR(MAX), JSON array of records; `$.id` maps to `emailId`). Returns one row `result = 'SUCCESS'` and `notes` (JSON with `rowsInserted`, `message`, `replayed`). The same `correlationId` replays the stored result. Existing `emailId`s are skipped, so zero inserted rows is still success. Raises 50001, 50002, 50003 and 50010 for input and state errors. |
+| `[02sjobsData].[02spinsertRawAppliedJobs]` | Inputs `@correlationId` (UNIQUEIDENTIFIER) and `@input` (NVARCHAR(MAX), JSON array of records; `$.id` maps to `emailId`). Returns one row `result = 'SUCCESS'` and `notes` (JSON with `rowsInserted`, `message`, `replayed` and, when rows were inserted, `fromId` and `toId`, the lowest and highest new id). The same `correlationId` replays the stored result. Existing `emailId`s are skipped, so zero inserted rows is still success. Raises 50001, 50002, 50003 and 50010 for input and state errors. |
 | `[02sjobsData].[03spgetLastDateAppliedJobs]` | No inputs. Returns `result = 'SUCCESS'` and `date`. Raises 50001 when there are no rows. |
 | `[02sjobsData].[05spgetActiveGoogleOAuthCreds]` | Input app id. Returns client id, client secret and refresh token. Raises 50001, 50002, 50003 (meanings `UNVERIFIED`; re-read the procedure). |
 | `[02sjobsData].[04spupsertGoogleOAuthToken]` | Used by `gen-token` to store the refresh token. Raises 50001, 50002, 50003 (meanings `UNVERIFIED`). |
@@ -332,7 +333,7 @@ Note: recordlog uses the header `x-record-log-retry-count`; jobs keeps `x-jobs-r
 
 | Object | Contract |
 | --- | --- |
-| `CALL sp_kafka_apply_committed_records($1::uuid, $2::jsonb, NULL, NULL, NULL)` | Run inside one transaction. Returns one row with `result`, `replayed`, `rows_inserted`. `result` must be `SUCCESS`. The procedure name comes from the event and must match `^[a-zA-Z0-9_."]+$` and be at most 200 characters. |
+| `CALL sp_kafka_apply_committed_records($1::uuid, $2::jsonb, $3::int, $4::int, NULL, NULL, NULL)` | `$3` and `$4` are `azureWrite.fromId` and `azureWrite.toId`, or NULL. Run inside one transaction. Returns one row with `result`, `replayed`, `rows_inserted`. `result` must be `SUCCESS`. The procedure name comes from the event and must match `^[a-zA-Z0-9_."]+$` and be at most 200 characters. |
 | `fn_pipeline_apply_status(eventId uuid, correlationId uuid, stage varchar, status varchar, timestamp timestamptz, details jsonb)` | Run inside one transaction. Returns `result`, `replayed`, `assigned_sequence`, `current_stage`, `current_status`. `result` must be `SUCCESS`. |
 
 The Azure procedure name from the event must match `^[a-zA-Z0-9_."\[\]]+$` and be at most 200 characters (`FACT`). The Rust version keeps both name checks (`PROPOSED`).

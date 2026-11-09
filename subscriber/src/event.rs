@@ -13,6 +13,17 @@ pub struct JobModels {
     pub read_model: String,
 }
 
+// Azure ids given to the rows of one write-model event, Azure hands them out oldest mail first (D57)
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AzureWriteRange {
+    // First Azure id inserted
+    pub from_id: i32,
+
+    // Last Azure id inserted
+    pub to_id: i32,
+}
+
 // One mail inside an event, it is serialized again as the input of the stored procedures
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct JobRecord {
@@ -47,6 +58,10 @@ pub struct JobsEvent {
 
     // The mails of the chunk, at least one
     pub records: Vec<JobRecord>,
+
+    // Azure id range, added by the write-model handler for the read-model topic
+    #[serde(default)]
+    pub azure_write: Option<AzureWriteRange>,
 }
 
 // True when the text is a UUID of version 7
@@ -88,6 +103,13 @@ impl JobsEvent {
             return Err("invalid jobs event: records must not be empty".to_string());
         }
 
+        if event
+            .azure_write
+            .is_some_and(|range| range.from_id < 1 || range.to_id < range.from_id)
+        {
+            return Err("invalid jobs event: azureWrite is not a valid id range".to_string());
+        }
+
         let incomplete = event.records.iter().any(|record| {
             record.id.is_empty()
                 || record.date.is_empty()
@@ -102,6 +124,29 @@ impl JobsEvent {
 
         Ok(event)
     }
+}
+
+// Returns a copy of the payload with the Azure id range set, or without it when there is none
+// The payload keeps every other field exactly as it came
+pub fn with_azure_write(payload: &Value, range: Option<AzureWriteRange>) -> Result<Value, String> {
+    let mut next = payload.clone();
+
+    let Some(object) = next.as_object_mut() else {
+        return Err("invalid jobs event: payload is not an object".to_string());
+    };
+
+    match range {
+        Some(range) => {
+            let range = serde_json::to_value(range).map_err(|error| error.to_string())?;
+
+            object.insert("azureWrite".to_string(), range);
+        }
+        None => {
+            object.remove("azureWrite");
+        }
+    }
+
+    Ok(next)
 }
 
 #[cfg(test)]
@@ -230,5 +275,86 @@ mod tests {
         assert!(is_uuid_v7(CORRELATION_ID));
         assert!(!is_uuid_v7("550e8400-e29b-41d4-a716-446655440000"));
         assert!(!is_uuid_v7(""));
+    }
+
+    // The Azure id range is absent on a write-model event
+    #[test]
+    fn azure_write_is_optional() {
+        let Ok(event) = JobsEvent::parse(&valid()) else {
+            panic!("event should parse");
+        };
+
+        assert_eq!(event.azure_write, None);
+    }
+
+    // The Azure id range is read with camelCase names
+    #[test]
+    fn azure_write_is_read() {
+        let mut payload = valid();
+        payload["azureWrite"] = json!({ "fromId": 295, "toId": 297 });
+
+        let Ok(event) = JobsEvent::parse(&payload) else {
+            panic!("event should parse");
+        };
+
+        assert_eq!(
+            event.azure_write,
+            Some(AzureWriteRange {
+                from_id: 295,
+                to_id: 297
+            })
+        );
+    }
+
+    // A reversed range or an id below 1 is rejected
+    #[test]
+    fn azure_write_rejects_a_bad_range() {
+        let mut reversed = valid();
+        reversed["azureWrite"] = json!({ "fromId": 9, "toId": 3 });
+
+        let mut zero = valid();
+        zero["azureWrite"] = json!({ "fromId": 0, "toId": 3 });
+
+        assert!(JobsEvent::parse(&reversed).is_err());
+        assert!(JobsEvent::parse(&zero).is_err());
+    }
+
+    // The range is added to a copy and the other fields stay
+    #[test]
+    fn with_azure_write_adds_the_range() {
+        let payload = valid();
+
+        let Ok(next) = with_azure_write(
+            &payload,
+            Some(AzureWriteRange {
+                from_id: 1,
+                to_id: 5,
+            }),
+        ) else {
+            panic!("range should be added");
+        };
+
+        assert_eq!(next["azureWrite"], json!({ "fromId": 1, "toId": 5 }));
+        assert_eq!(next["correlationId"], payload["correlationId"]);
+        assert!(payload.get("azureWrite").is_none());
+    }
+
+    // Without a range an old azureWrite value is removed
+    #[test]
+    fn with_azure_write_removes_a_stale_range() {
+        let mut payload = valid();
+        payload["azureWrite"] = json!({ "fromId": 1, "toId": 5 });
+
+        let Ok(next) = with_azure_write(&payload, None) else {
+            panic!("range should be removed");
+        };
+
+        assert!(next.get("azureWrite").is_none());
+    }
+
+    // A payload that is not an object is rejected
+    #[test]
+    fn with_azure_write_rejects_a_non_object() {
+        assert!(with_azure_write(&json!([1, 2]), None).is_err());
     }
 }

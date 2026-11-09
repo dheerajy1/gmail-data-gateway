@@ -67,7 +67,13 @@ async fn process(
     .await?;
 
     // 3. PostgreSQL procedure, the name comes from the event and is never hardcoded
-    let applied = execute_read_model(&parsed.job.read_model, id, &parsed.records).await?;
+    let applied = execute_read_model(
+        &parsed.job.read_model,
+        id,
+        &parsed.records,
+        parsed.azure_write,
+    )
+    .await?;
 
     // 4. READ_MODEL_SUCCEEDED, a replay is a success
     report(

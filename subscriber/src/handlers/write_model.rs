@@ -4,7 +4,7 @@ use serde_json::json;
 use super::{LOG_TARGET, StageFailure, handle_stage_failure, raw_correlation_id, report};
 use crate::{
     azure::execute_write_model,
-    event::JobsEvent,
+    event::{JobsEvent, with_azure_write},
     gateway::GatewayEvent,
     retry::get_retry_count,
     status::{PipelineStage, PipelineStatus},
@@ -104,12 +104,14 @@ async fn process(
     )
     .await?;
 
-    // 6. Next stage, the same event goes to the read-model topic
+    // 6. Next stage, the same event plus the Azure id range goes to the read-model topic
+    let next_event = with_azure_write(&event.payload, notes.azure_write())?;
+
     transport
         .publish(PublishRequest {
             topic: env().jobs_read_topic.clone(),
             key: Some(id.to_string()),
-            value: event.payload.clone(),
+            value: next_event,
             headers: Default::default(),
         })
         .await?;

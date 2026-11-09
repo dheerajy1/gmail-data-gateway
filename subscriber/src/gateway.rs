@@ -282,6 +282,8 @@ where
                 handler(event).await;
             });
         }
+        // The gateway confirms that a processed ACK was accepted, nothing to do
+        "ack-received" => {}
         "error" => {
             // Read before the log call, the tracing macros bring their own Value trait into scope
             let reason = message

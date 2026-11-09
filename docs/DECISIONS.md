@@ -673,6 +673,19 @@ Nothing in this file has been compiled or run. Everything marked as read was rea
   - The old long commands in `docs/BUILD.md` stay valid.
 - **Affects:** `xtask/src/quiet.rs`, `xtask/src/main.rs`, `.cargo/config.toml`, `docs/BUILD.md`, `README.md`.
 
+## D57: Azure id range from the write stage to the read model
+
+- **Status:** `DECIDED` (2026-11-09, you asked to fix the NULL `azure_id` in PostgreSQL before a production `Bulk` run, the way your `recordlog-api-rust` commit `b44d904` does it).
+- **Evidence (`OBSERVED`):** the recordlog commit, the Azure write procedure (it already collects the new ids in `@insertedIds`), and the PostgreSQL function and procedure of the jobs database, read on 2026-11-09. Before this change the Kafka path always inserted `azure_id = NULL` and waited for the Azure sync.
+- **Decisions:**
+  - The Azure write procedure returns `fromId` and `toId` in its notes, and inserts oldest date first with ties by `emailId`.
+  - The write-model handler copies them into the event as `azureWrite` for the read-model topic. The read-model handler passes them to `sp_kafka_apply_committed_records` as two new `IN` parameters, `NULL` when absent.
+  - `fn_kafka_insert_raw_applied_jobs` inserts oldest date first with ties by `emailId`, and gives the k-th inserted row `fromId + k`, but only when `toId - fromId + 1` equals the number of rows it is about to insert. When the sizes differ, `azure_id` stays `NULL` and the Azure sync fills it later; nothing fails.
+  - A replay of the write stage returns no range, so a read model that runs after a replay leaves `azure_id` `NULL`. The notes of a replay come from `07twriteOperation`, which does not store the range.
+  - The new signatures are `fn_kafka_insert_raw_applied_jobs(uuid, jsonb, int, int)` and `sp_kafka_apply_committed_records(uuid, jsonb, int, int)`. The `GRANT EXECUTE` lines for `gdg_proj_service` must be run again for them.
+- **Open item:** the development Azure schema has its own write procedure that I have not seen; it needs the same change before a development run.
+- **Affects:** `subscriber/src/{event,azure,postgres}.rs`, `subscriber/src/handlers/{write_model,read_model}.rs`, `docs/SPEC.md`, the Azure write procedure, `fn_kafka_insert_raw_applied_jobs`, `sp_kafka_apply_committed_records`, the grant script.
+
 ---
 
 
