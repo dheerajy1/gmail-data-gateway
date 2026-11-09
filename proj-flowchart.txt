@@ -1,5 +1,5 @@
 ================================================================================
- PROJECT FLOW — Jobs API Gateway (Phase 2B final)
+ PROJECT FLOW — Jobs API Gateway (Rust)
 ================================================================================
 
 [I] CLIENT
@@ -9,12 +9,13 @@
          |  Body: { type, query, … }
          v
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│ [II] JOBS API  (jobs-api-gateway)                                             │
-│  1. Auth + Gmail ingest                                                      │
-│  2. correlationId = UUIDv7                                                   │
-│  3. Domain event { correlationId, job, sourceClientId, records[] }           │
-│  4. postToGateway → topic jobs-ingest-write-model                            │
-│  5. HTTP 200 ACCEPTED (async — does NOT call Azure SP)                       │
+│ [II] JOBS API  (jobs-api-gateway, Rust)                                      │
+│ 1. Auth + Gmail ingest                                                       │
+│ 2. Records oldest first, split into chunks of 100                            │
+│ 3. Per chunk: correlationId = UUIDv7, domain event                           │
+│    { correlationId, job, sourceClientId, records[] }                         │
+│ 4. Publish each event to jobs-ingest-write-model over HTTP                   │
+│ 5. HTTP 200 ACCEPTED (async, does NOT call Azure SP)                         │
 └───────────────────────────────────┬──────────────────────────────────────────┘
                                     |
                                     v

@@ -37,6 +37,7 @@
 │   └── state/
 │       ├── checkpoint-old.md
 │       └── checkpoint.md
+├── .dockerignore
 ├── .env.development
 ├── .env.example
 ├── .env.preview
@@ -202,6 +203,7 @@
 └── xtask/
     ├── Cargo.toml
     └── src/
+        ├── gen_token.rs
         └── main.rs
 
-42 directories, 161 files
+42 directories, 163 files

@@ -639,6 +639,20 @@ Nothing in this file has been compiled or run. Everything marked as read was rea
   - The `docker-*` aliases stay in P10.
 - **Affects:** `xtask/*`, `.cargo/config.toml`, `src/db/google_oauth.rs`, `src/logging.rs`, `Cargo.lock`.
 
+## D53: P10 Docker, CI and repository docs
+
+- **Status:** `DECIDED` (2026-11-09, you chose to rewrite the API Dockerfile for Rust; the rest follows D20, D25 and the recordlog files).
+- **Evidence (`OBSERVED`):** the jobs and `recordlog-api-rust` Docker files, `release.yml` of both Rust repos (identical to each other), the jobs `.gitignore`, `src/app.rs` and `xtask`, read on 2026-11-09. The `recordlog-api-rust` API `docker/Dockerfile` still builds with Bun, so there is no Rust API image to copy.
+- **Decisions:**
+  - `docker/Dockerfile.subscriber` builds `--package subscriber` in a `rust:1-bookworm` stage and runs it in `debian:bookworm-slim` with CA certificates, like recordlog.
+  - `docker/Dockerfile` builds `--package jobs-api-gateway` (binary `main`) the same way and sets `VERCEL_DEV_PORT=8091` (the `.env.production` `APP_PORT`), because `xtask` normally passes it. It needs no Tailwind CLI because `public/global.css` is committed; run `cargo css` and commit the file after a style change. The API service in compose stays commented out because the API runs on Vercel.
+  - `docker/docker-compose.yml` is named `jobs-api-gateway`, runs only `jobs-subscriber` with `../.env.production`, and drops `NODE_ENV` (`APP_ENV` comes from the env file).
+  - `.dockerignore` matches recordlog's (`target`, `.git`, `.github`, `.env*`, `docs`, `tests`, `node_modules`). Env files reach the container only through `env_file`.
+  - `release.yml` is the `kafka-api-gateway-rust` file (D25, untested until you run it in GitHub Actions).
+  - `xtask` gets the `docker` task and the ten `docker-*` aliases from recordlog (D20).
+  - `README.md` and `proj-flowchart.txt` are rewritten for the Rust workspace. `CHANGELOG.md` is written by semantic-release, so it is not edited by hand. `structure.txt` is not regenerated here because the command that builds it is `UNKNOWN`.
+- **Affects:** `docker/*`, `.dockerignore`, `.github/workflows/release.yml`, `xtask/src/main.rs`, `.cargo/config.toml`, `README.md`, `proj-flowchart.txt`.
+
 ---
 
 

@@ -1,6 +1,7 @@
 mod gen_token;
 
 use std::env;
+use std::path::PathBuf;
 use std::process::{Command, exit};
 
 use jobs_api_gateway::config::env::Env;
@@ -8,7 +9,7 @@ use jobs_api_gateway::config::env::Env;
 fn main() {
     let task = env::args().nth(1).unwrap_or_else(|| {
         eprintln!(
-            "Usage: cargo <css|dev|start|preview|build-prod|dev-subscriber|start-subscriber|build-subscriber|gen-token>"
+            "Usage: cargo <css|dev|start|preview|build-prod|dev-subscriber|start-subscriber|build-subscriber|gen-token|docker-*>"
         );
         exit(1);
     });
@@ -23,6 +24,7 @@ fn main() {
         "start-subscriber" => run_subscriber("production", true),
         "build-subscriber" => run_build_subscriber(),
         "gen-token" => gen_token::run(load_env("production").google_appid),
+        "docker" => run_docker(env::args().nth(2)),
         _ => {
             eprintln!("Unknown task: {task}");
             exit(1);
@@ -134,6 +136,69 @@ fn run_build_subscriber() {
     if status.success() {
         println!("-> Binary: target/release/subscriber");
     }
+
+    exit(status.code().unwrap_or(1));
+}
+
+// Path of the compose file, found from the xtask folder so it works from any directory
+fn compose_file() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("..")
+        .join("docker")
+        .join("docker-compose.yml")
+}
+
+// Runs one docker compose action on docker/docker-compose.yml
+fn run_docker(action: Option<String>) {
+    let action = action.unwrap_or_else(|| {
+        eprintln!(
+            "Usage: cargo docker-<build|up|down|start|stop|restart|logs|logs-clear|rmi|clean>"
+        );
+        exit(1);
+    });
+
+    let args: &[&str] = match action.as_str() {
+        "build" => &["build"],
+        "up" => &["up", "-d"],
+        "down" => &["down"],
+        "start" => &["start"],
+        "stop" => &["stop"],
+        "restart" => &["restart"],
+        "logs" => &["logs", "-f"],
+        "rmi" => &["down", "--rmi", "local"],
+        "clean" => &["down", "--rmi", "local", "--volumes"],
+        "logs-clear" => {
+            clear_docker_logs();
+            return;
+        }
+        _ => {
+            eprintln!("Unknown docker action: {action}");
+            exit(1);
+        }
+    };
+
+    let status = Command::new("docker")
+        .arg("compose")
+        .arg("-f")
+        .arg(compose_file())
+        .args(args)
+        .status()
+        .expect("Failed to execute docker compose, is Docker installed?");
+
+    exit(status.code().unwrap_or(1));
+}
+
+// Empties the log file of every container in the compose project, asks for the sudo password
+fn clear_docker_logs() {
+    let script = format!(
+        "for c in $(docker compose -f '{}' ps -q); do sudo truncate -s 0 $(docker inspect --format='{{{{.LogPath}}}}' $c); done",
+        compose_file().display()
+    );
+
+    let status = Command::new("sh")
+        .args(["-c", &script])
+        .status()
+        .expect("Failed to clear the docker logs");
 
     exit(status.code().unwrap_or(1));
 }

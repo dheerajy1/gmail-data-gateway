@@ -1,4 +1,7 @@
+name: jobs-api-gateway
+
 services:
+  # The API runs on Vercel, so this service stays disabled
   # jobs-api-gateway:
   #   container_name: jobs-api-gateway
   #   build:
@@ -8,14 +11,13 @@ services:
   #   restart: unless-stopped
   #   env_file:
   #     - ../.env.production
-  #   environment:
-  #     NODE_ENV: production
   #   ports:
   #     - "8091:8091"
   #   network_mode: bridge
   #   extra_hosts:
   #     - "host.docker.internal:host-gateway"
 
+  # ONE permanent subscriber: all three jobs topics on one websocket
   jobs-subscriber:
     container_name: jobs-subscriber
 
@@ -29,9 +31,6 @@ services:
 
     env_file:
       - ../.env.production
-
-    environment:
-      NODE_ENV: production
 
     network_mode: bridge
 

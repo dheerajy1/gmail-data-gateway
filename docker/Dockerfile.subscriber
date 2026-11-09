@@ -1,38 +1,27 @@
-# Builds ONE permanent jobs-api-gateway WebSocket subscriber binary.
-# Preferred: jobs-subscriber
-#
-#   --build-arg SUBSCRIBER_MAIN=src/lib/jobs-subscriber/main.ts
-#   --build-arg SUBSCRIBER_BINARY=jobs-subscriber
+# Builds the jobs-api-gateway subscriber: one process, one authenticated websocket, three topics.
+# The build context is the repo root, see docker/docker-compose.yml.
 
-FROM oven/bun:1.2.21 AS builder
+FROM rust:1-bookworm AS builder
 
 WORKDIR /app
 
-ARG SUBSCRIBER_MAIN=src/lib/jobs-subscriber/main.ts
-ARG SUBSCRIBER_BINARY=jobs-subscriber
-
-COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile
-
-COPY tsconfig.json ./
+COPY Cargo.toml Cargo.lock ./
 COPY src ./src
+COPY public ./public
+COPY xtask ./xtask
+COPY subscriber ./subscriber
 
-# Compile to a standalone binary (same style as record-log)
-RUN mkdir -p dist && bun build ./${SUBSCRIBER_MAIN} --target=bun --compile --outfile=dist/${SUBSCRIBER_BINARY}
+RUN cargo build --release --package subscriber
 
-# ──────────────────────────────────────────────
-# Runtime image
-# ──────────────────────────────────────────────
 FROM debian:bookworm-slim
 
+# CA certificates let the subscriber trust the Azure SQL server certificate
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
-ARG SUBSCRIBER_BINARY=jobs-subscriber
-ENV SUBSCRIBER_BINARY=${SUBSCRIBER_BINARY}
+COPY --from=builder /app/target/release/subscriber /app/subscriber
 
-# Keep the real name for consistency
-COPY --from=builder /app/dist/${SUBSCRIBER_BINARY} /app/${SUBSCRIBER_BINARY}
-
-ENV NODE_ENV=production
-
-CMD ["/app/jobs-subscriber"]
+CMD ["/app/subscriber"]
