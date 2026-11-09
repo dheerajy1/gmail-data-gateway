@@ -12,7 +12,7 @@ use tracing_subscriber::{
 const IST_OFFSET_SECONDS: i32 = 5 * 3600 + 30 * 60;
 
 // Current time in IST as an ISO string with milliseconds, like 2026-10-30T18:00:00.123+05:30
-fn iso_now_ist() -> String {
+pub fn iso_now_ist() -> String {
     // The IST offset is a valid constant, UTC is only a fallback that cannot happen
     let ist = FixedOffset::east_opt(IST_OFFSET_SECONDS).unwrap_or_else(|| Utc.fix());
 

@@ -625,6 +625,20 @@ Nothing in this file has been compiled or run. Everything marked as read was rea
   - `sqlx` is not added; it belongs to P8.
 - **Affects:** `subscriber/Cargo.toml`, `Cargo.lock`.
 
+## D52: P9 `gen-token` design and xtask crates
+
+- **Status:** `DECIDED` (2026-11-09, you chose the production env file; the rest follows SPEC section 12 and F40).
+- **Evidence (`OBSERVED`):** the old `src/lib/generate-token.ts`, `getGoogleOAuthApp.ts` and `spupsertGoogleOAuthToken.ts` from the TS tarball, and the Azure script of `[04spupsertGoogleOAuthToken]`, read on 2026-11-09.
+- **Decisions:**
+  - `cargo gen-token` loads `.env.production`. The old `token:gen` script loaded `.env.development`.
+  - The flow is the old one: read the client id and secret of `Google_APPID` from `[05tgoogleOAuthApps]`, print the consent URL (offline access, forced consent, redirect `http://localhost:3000`, scopes `gmail.readonly` and `drive`), read the pasted code, exchange it at Google's token endpoint with `reqwest`, store the token through `[04spupsertGoogleOAuthToken]`.
+  - Behavior change: the old script printed the whole refresh token. The Rust command prints the first four and last four characters with the length (F40: tokens are never printed in full).
+  - The pasted code may be the bare code, a percent-encoded code, or the whole redirect address; the code is taken from each (my addition, so a copy from the address bar works).
+  - The database functions (`get_app`, `upsert_refresh_token`) live in `src/db/google_oauth.rs`; `iso_now_ist` in `logging.rs` is now public for the log line.
+  - New crates for `xtask`, all already used by the root crate: `reqwest` (0.12, `json`, `rustls-tls`), `serde` (`derive`) and `tokio` (`rt`, a current-thread runtime for the command).
+  - The `docker-*` aliases stay in P10.
+- **Affects:** `xtask/*`, `.cargo/config.toml`, `src/db/google_oauth.rs`, `src/logging.rs`, `Cargo.lock`.
+
 ---
 
 

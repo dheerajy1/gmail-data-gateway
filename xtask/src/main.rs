@@ -1,3 +1,5 @@
+mod gen_token;
+
 use std::env;
 use std::process::{Command, exit};
 
@@ -6,7 +8,7 @@ use jobs_api_gateway::config::env::Env;
 fn main() {
     let task = env::args().nth(1).unwrap_or_else(|| {
         eprintln!(
-            "Usage: cargo <css|dev|start|preview|build-prod|dev-subscriber|start-subscriber|build-subscriber>"
+            "Usage: cargo <css|dev|start|preview|build-prod|dev-subscriber|start-subscriber|build-subscriber|gen-token>"
         );
         exit(1);
     });
@@ -20,6 +22,7 @@ fn main() {
         "dev-subscriber" => run_subscriber("development", false),
         "start-subscriber" => run_subscriber("production", true),
         "build-subscriber" => run_build_subscriber(),
+        "gen-token" => gen_token::run(load_env("production").google_appid),
         _ => {
             eprintln!("Unknown task: {task}");
             exit(1);
