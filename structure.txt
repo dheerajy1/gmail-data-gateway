@@ -162,11 +162,18 @@
 ├── subscriber/
 │   ├── Cargo.toml
 │   ├── src/
+│   │   ├── azure.rs
 │   │   ├── event.rs
 │   │   ├── failure.rs
 │   │   ├── gateway.rs
+│   │   ├── handlers/
+│   │   │   ├── mod.rs
+│   │   │   ├── read_model.rs
+│   │   │   ├── status.rs
+│   │   │   └── write_model.rs
 │   │   ├── lib.rs
 │   │   ├── main.rs
+│   │   ├── postgres.rs
 │   │   ├── retry.rs
 │   │   ├── status.rs
 │   │   ├── topics.rs
@@ -197,4 +204,4 @@
     └── src/
         └── main.rs
 
-41 directories, 155 files
+42 directories, 161 files

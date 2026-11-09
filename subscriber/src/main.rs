@@ -3,21 +3,23 @@ use std::sync::Arc;
 use jobs_api_gateway::{config::env, logging};
 use subscriber::{
     gateway::{self, Backoff, GatewayConfig, GatewayEvent},
-    topics::Topics,
+    handlers::{
+        read_model::handle_read_model_event, status::handle_status_event,
+        write_model::handle_write_model_event,
+    },
+    topics::{Route, Topics},
 };
 use tokio::signal::unix::{SignalKind, signal};
 
 // Log target of the subscriber process
 const LOG_TARGET: &str = "JobsSub";
 
-// Classifies an event by its topic, the stage handlers arrive in P8 and until then nothing is acknowledged
+// Sends an event to the handler of its topic, an unknown topic is ignored and not acknowledged
 async fn on_event(topics: Arc<Topics>, event: GatewayEvent) {
     match topics.route(&event.topic) {
-        Some(route) => tracing::info!(
-            target: LOG_TARGET,
-            "event received route={route:?} topic={} (handlers arrive in P8, not acknowledged)",
-            event.topic
-        ),
+        Some(Route::Write) => handle_write_model_event(event).await,
+        Some(Route::Read) => handle_read_model_event(event).await,
+        Some(Route::Status) => handle_status_event(event).await,
         None => tracing::warn!(
             target: LOG_TARGET,
             "ignored event of unknown topic={}",

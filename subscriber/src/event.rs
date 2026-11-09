@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use uuid::Uuid;
 
@@ -13,8 +13,8 @@ pub struct JobModels {
     pub read_model: String,
 }
 
-// One mail inside an event
-#[derive(Debug, Clone, Deserialize)]
+// One mail inside an event, it is serialized again as the input of the stored procedures
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct JobRecord {
     // Gmail message id
     pub id: String,
